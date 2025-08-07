@@ -1,20 +1,19 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { Row } from "@tanstack/react-table";
 import { Torrent } from "@/lib/types";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-export const formatBytes = (bytes: number, decimals = 2) => {
-  if (bytes === 0) return '0 Bytes';
+export function formatBytes(bytes: number) {
+  if (bytes === 0) return "0 B";
   const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const sizes = ["B", "KB", "MB", "GB", "TB", "PB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-};
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
 
 export const getStatusText = (status: number) => {
   switch (status) {
@@ -68,7 +67,7 @@ export const statuses = [
   "Queued to download",
   "Downloading",
   "Queued to seed",
-  "Seeding",
+  "Seeding"
 ];
 
 export const statusMap: { [key: string]: number | undefined } = {
@@ -79,7 +78,7 @@ export const statusMap: { [key: string]: number | undefined } = {
   "Queued to download": 3,
   "Downloading": 4,
   "Queued to seed": 5,
-  "Seeding": 6,
+  "Seeding": 6
 };
 
 export const statusReverseMap: { [key: number]: string } = {
@@ -89,7 +88,7 @@ export const statusReverseMap: { [key: number]: string } = {
   3: "Queued to download",
   4: "Downloading",
   5: "Queued to seed",
-  6: "Seeding",
+  6: "Seeding"
 };
 
 export const columnHeaderNames: { [key: string]: string } = {
@@ -99,5 +98,5 @@ export const columnHeaderNames: { [key: string]: string } = {
   percentDone: "Progress",
   rateDownload: "Down Speed",
   rateUpload: "Up Speed",
-  actions: "Actions",
+  actions: "Actions"
 };

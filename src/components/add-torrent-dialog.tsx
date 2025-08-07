@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getFreeSpace } from "@/lib/transmission";
+import { formatBytes } from "@/lib/utils";
 
 interface AddTorrentDialogProps {
   open: boolean;
@@ -21,17 +22,6 @@ interface AddTorrentDialogProps {
     destination: string
   ) => Promise<void>;
   error?: string;
-}
-
-async function fetchDiskSpace(
-  path: string
-): Promise<{ free: number; total: number } | null> {
-  if (!path) return null;
-  try {
-    return await getFreeSpace(path);
-  } catch {
-    return null;
-  }
 }
 
 export function AddTorrentDialog({
@@ -56,10 +46,15 @@ export function AddTorrentDialog({
       return;
     }
     setDiskLoading(true);
-    fetchDiskSpace(destination).then((info) => {
-      setDiskSpace(info);
-      setDiskLoading(false);
-    });
+    getFreeSpace(destination)
+      .then((info) => {
+        setDiskSpace(info);
+        setDiskLoading(false);
+      })
+      .catch(() => {
+        setDiskSpace(null);
+        setDiskLoading(false);
+      });
   }, [destination]);
 
   const validateDestination = (path: string) => {
@@ -139,12 +134,4 @@ export function AddTorrentDialog({
       </DialogContent>
     </Dialog>
   );
-}
-
-function formatBytes(bytes: number) {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB", "TB", "PB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
