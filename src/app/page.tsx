@@ -36,6 +36,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AddTorrentDialog } from "@/components/add-torrent-dialog";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function Home() {
   const [torrents, setTorrents] = useState<Torrent[]>([]);
@@ -265,6 +266,7 @@ export default function Home() {
         open={detailsDialogOpen}
         onOpenChange={setDetailsDialogOpen}
       />
+      <Toaster />
     </>
   );
 }
