@@ -5,11 +5,10 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Torrent } from "@/lib/types";
-import { formatBytes, getStatusText } from "@/lib/utils";
-import { getTorrentDetails } from "@/lib/transmission";
-import { useEffect, useState } from "react";
 import { TorrentDetailsDialogProps } from "@/lib/types";
+import { formatBytes, getStatusText } from "@/lib/utils";
+import { getTorrentDetails, setFileWantedState } from "@/lib/transmission";
+import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function TorrentDetailsDialog({
@@ -277,20 +276,26 @@ export function TorrentDetailsDialog({
                   <tbody>
                     {details.fileStats.map((fileStat: any, index: number) => {
                       const file = details.files[index];
-                      const wanted = file?.wanted !== false; // Transmission: wanted=true/false
+                      // Determine wanted state from filesWanted/filesUnwanted
+                      const wanted = details.filesWanted
+                        ? details.filesWanted.includes(index)
+                        : true;
                       return (
                         <tr key={index}>
                           <td className='p-2'>
                             <Checkbox
                               checked={wanted}
                               onCheckedChange={async (checked) => {
-                                await import("@/lib/transmission").then((mod) =>
-                                  mod.setFileWantedState(
-                                    torrent.id,
-                                    [index],
-                                    !!checked
-                                  )
+                                await setFileWantedState(
+                                  torrent.id,
+                                  [index],
+                                  !!checked
                                 );
+                                // Refetch details to sync UI
+                                const updatedDetails = await getTorrentDetails(
+                                  torrent.id
+                                );
+                                setDetails(updatedDetails);
                               }}
                               aria-label={`Toggle download for ${
                                 file?.name || "file"
