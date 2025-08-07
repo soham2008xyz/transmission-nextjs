@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getFreeSpace } from "@/lib/transmission";
-import { formatBytes } from "@/lib/utils";
+import { formatBytes, validateDestination } from "@/lib/utils";
 
 interface AddTorrentDialogProps {
   open: boolean;
@@ -56,14 +56,6 @@ export function AddTorrentDialog({
         setDiskLoading(false);
       });
   }, [destination]);
-
-  const validateDestination = (path: string) => {
-    if (!path) return "";
-    // Example: must start with / and be at least 2 chars
-    if (!/^\/.+/.test(path)) return "Path must start with /";
-    if (path.length < 2) return "Path is too short";
-    return "";
-  };
 
   const handleAdd = async () => {
     setLocalError("");

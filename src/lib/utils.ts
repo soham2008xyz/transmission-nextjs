@@ -100,3 +100,10 @@ export const columnHeaderNames: { [key: string]: string } = {
   rateUpload: "Up Speed",
   actions: "Actions"
 };
+
+export function validateDestination(path: string): string {
+  if (!path) return "";
+  if (!/^\/.+/.test(path)) return "Path must start with /";
+  if (path.length < 2) return "Path is too short";
+  return "";
+}
