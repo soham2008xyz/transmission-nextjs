@@ -19,13 +19,18 @@ export function TorrentDetailsDialog({
   const [details, setDetails] = useState<any>(null);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
     if (open && torrent) {
       const fetchDetails = async () => {
         const torrentDetails = await getTorrentDetails(torrent.id);
         setDetails(torrentDetails);
       };
       fetchDetails();
+      interval = setInterval(fetchDetails, 5000); // refresh every 5 seconds
     }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [open, torrent]);
 
   if (!torrent) {
