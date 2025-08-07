@@ -37,7 +37,23 @@ export const getTorrentDetails = async (id: number) => {
         "status",
         "peers",
         "pieces",
-        "fileStats"
+        "fileStats",
+        "addedDate",
+        "activityDate",
+        "doneDate",
+        "eta",
+        "uploadRatio",
+        "uploadedEver",
+        "downloadedEver",
+        "errorString",
+        "creator",
+        "comment",
+        "hashString",
+        "downloadDir",
+        "isPrivate",
+        "pieceCount",
+        "pieceSize",
+        "trackerStats"
       ]
     }
   });

@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Torrent } from "@/lib/types";
 import { formatBytes, getStatusText } from "@/lib/utils";
@@ -6,7 +11,11 @@ import { getTorrentDetails } from "@/lib/transmission";
 import { useEffect, useState } from "react";
 import { TorrentDetailsDialogProps } from "@/lib/types";
 
-export function TorrentDetailsDialog({ torrent, open, onOpenChange }: TorrentDetailsDialogProps) {
+export function TorrentDetailsDialog({
+  torrent,
+  open,
+  onOpenChange
+}: TorrentDetailsDialogProps) {
   const [details, setDetails] = useState<any>(null);
 
   useEffect(() => {
@@ -25,51 +34,191 @@ export function TorrentDetailsDialog({ torrent, open, onOpenChange }: TorrentDet
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className='max-w-3xl'>
         <DialogHeader>
           <DialogTitle>{torrent.name}</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="info">
+        <Tabs defaultValue='info'>
           <TabsList>
-            <TabsTrigger value="info">Info</TabsTrigger>
-            <TabsTrigger value="peers">Peers</TabsTrigger>
-            <TabsTrigger value="pieces">Pieces</TabsTrigger>
-            <TabsTrigger value="files">Files</TabsTrigger>
+            <TabsTrigger value='info'>Info</TabsTrigger>
+            <TabsTrigger value='peers'>Peers</TabsTrigger>
+            <TabsTrigger value='pieces'>Pieces</TabsTrigger>
+            <TabsTrigger value='files'>Files</TabsTrigger>
           </TabsList>
-          <TabsContent value="info">
-            <div>
-              <p><strong>ID:</strong> {torrent.id}</p>
-              <p><strong>Size:</strong> {formatBytes(torrent.totalSize)}</p>
-              <p><strong>Progress:</strong> {(torrent.percentDone * 100).toFixed(2)}%</p>
-              <p><strong>Status:</strong> {getStatusText(torrent.status)}</p>
-              <p><strong>Download Speed:</strong> {formatBytes(torrent.rateDownload)}/s</p>
-              <p><strong>Upload Speed:</strong> {formatBytes(torrent.rateUpload)}/s</p>
-            </div>
+          <TabsContent value='info'>
+            <table className='min-w-full text-sm border border-muted rounded-md'>
+              <tbody>
+                <tr>
+                  <td className='font-semibold p-2'>ID</td>
+                  <td className='p-2'>{torrent.id}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Name</td>
+                  <td className='p-2'>{torrent.name}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Size</td>
+                  <td className='p-2'>{formatBytes(torrent.totalSize)}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Progress</td>
+                  <td className='p-2'>
+                    {(torrent.percentDone * 100).toFixed(2)}%
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Status</td>
+                  <td className='p-2'>{getStatusText(torrent.status)}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Download Speed</td>
+                  <td className='p-2'>{formatBytes(torrent.rateDownload)}/s</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Upload Speed</td>
+                  <td className='p-2'>{formatBytes(torrent.rateUpload)}/s</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Date Added</td>
+                  <td className='p-2'>
+                    {details?.addedDate
+                      ? new Date(details.addedDate * 1000).toLocaleString()
+                      : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Last Activity</td>
+                  <td className='p-2'>
+                    {details?.activityDate
+                      ? new Date(details.activityDate * 1000).toLocaleString()
+                      : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Done Date</td>
+                  <td className='p-2'>
+                    {details?.doneDate
+                      ? new Date(details.doneDate * 1000).toLocaleString()
+                      : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>ETA</td>
+                  <td className='p-2'>
+                    {details?.eta !== undefined
+                      ? details.eta > 0
+                        ? `${Math.floor(details.eta / 3600)}h ${Math.floor(
+                            (details.eta % 3600) / 60
+                          )}m`
+                        : "Done"
+                      : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Upload Ratio</td>
+                  <td className='p-2'>{details?.uploadRatio?.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Uploaded Ever</td>
+                  <td className='p-2'>
+                    {details?.uploadedEver
+                      ? formatBytes(details.uploadedEver)
+                      : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Downloaded Ever</td>
+                  <td className='p-2'>
+                    {details?.downloadedEver
+                      ? formatBytes(details.downloadedEver)
+                      : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Error</td>
+                  <td className='p-2'>{details?.errorString || "-"}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Creator</td>
+                  <td className='p-2'>{details?.creator || "-"}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Comment</td>
+                  <td className='p-2'>{details?.comment || "-"}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Hash</td>
+                  <td className='p-2'>{details?.hashString || "-"}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Download Directory</td>
+                  <td className='p-2'>{details?.downloadDir || "-"}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Private</td>
+                  <td className='p-2'>
+                    {details?.isPrivate !== undefined
+                      ? details.isPrivate
+                        ? "Yes"
+                        : "No"
+                      : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Piece Count</td>
+                  <td className='p-2'>{details?.pieceCount}</td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Piece Size</td>
+                  <td className='p-2'>
+                    {details?.pieceSize ? formatBytes(details.pieceSize) : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className='font-semibold p-2'>Tracker Stats</td>
+                  <td className='p-2'>
+                    {details?.trackerStats ? details.trackerStats.length : "-"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </TabsContent>
-          <TabsContent value="peers">
+          <TabsContent value='peers'>
             {details ? (
               <ul>
                 {details.peers.map((peer: any, index: number) => (
-                  <li key={index}>{peer.address} - {peer.clientName}</li>
+                  <li key={index}>
+                    {peer.address} - {peer.clientName}
+                  </li>
                 ))}
               </ul>
-            ) : <p>Loading peers...</p>}
+            ) : (
+              <p>Loading peers...</p>
+            )}
           </TabsContent>
-          <TabsContent value="pieces">
+          <TabsContent value='pieces'>
             {details ? (
-              <div className="w-full h-32 overflow-y-auto bg-muted rounded-md p-2">
-                <pre className="text-xs whitespace-pre-wrap break-all">{details.pieces}</pre>
+              <div className='w-full h-32 overflow-y-auto bg-muted rounded-md p-2'>
+                <pre className='text-xs whitespace-pre-wrap break-all'>
+                  {details.pieces}
+                </pre>
               </div>
-            ) : <p>Loading pieces...</p>}
+            ) : (
+              <p>Loading pieces...</p>
+            )}
           </TabsContent>
-          <TabsContent value="files">
+          <TabsContent value='files'>
             {details ? (
               <ul>
                 {details.fileStats.map((file: any, index: number) => (
-                  <li key={index}>{file.name} ({formatBytes(file.length)})</li>
+                  <li key={index}>
+                    {file.name} ({formatBytes(file.length)})
+                  </li>
                 ))}
               </ul>
-            ) : <p>Loading files...</p>}
+            ) : (
+              <p>Loading files...</p>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>
