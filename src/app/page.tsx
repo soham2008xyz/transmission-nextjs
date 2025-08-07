@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { addTorrentByMagnet, addTorrentByFile } from "@/lib/transmission-add";
+import { AddTorrentDialog } from "@/components/add-torrent-dialog";
 
 export default function Home() {
   const [torrents, setTorrents] = useState<Torrent[]>([]);
@@ -61,8 +62,6 @@ export default function Home() {
   const [pageIndex, setPageIndex] = useLocalStorage("table_pageIndex", 0);
   const [pageSize, setPageSize] = useLocalStorage("table_pageSize", 10);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [magnetLink, setMagnetLink] = useState("");
-  const [torrentFile, setTorrentFile] = useState<File | null>(null);
   const [addError, setAddError] = useState("");
 
   const fetchTorrents = async () => {
@@ -117,7 +116,10 @@ export default function Home() {
     }
   };
 
-  const handleAddTorrent = async () => {
+  const handleAddTorrent = async (
+    magnetLink: string,
+    torrentFile: File | null
+  ) => {
     setAddError("");
     try {
       if (magnetLink) {
@@ -129,8 +131,6 @@ export default function Home() {
         return;
       }
       setAddDialogOpen(false);
-      setMagnetLink("");
-      setTorrentFile(null);
       await fetchTorrents();
     } catch (e) {
       setAddError("Failed to add torrent.");
@@ -204,38 +204,12 @@ export default function Home() {
         </div>
       </main>
       {/* Add Torrent Dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Torrent</DialogTitle>
-            <DialogDescription>
-              Add a torrent by magnet link or upload a .torrent file.
-            </DialogDescription>
-          </DialogHeader>
-          <div className='space-y-4'>
-            <Input
-              placeholder='Magnet link'
-              value={magnetLink}
-              onChange={(e) => setMagnetLink(e.target.value)}
-            />
-            <div>or</div>
-            <Input
-              type='file'
-              accept='.torrent'
-              onChange={(e) => setTorrentFile(e.target.files?.[0] || null)}
-            />
-            {addError && (
-              <div className='text-destructive text-sm'>{addError}</div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button onClick={handleAddTorrent}>Add</Button>
-            <DialogClose asChild>
-              <Button variant='outline'>Cancel</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddTorrentDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onAdd={handleAddTorrent}
+        error={addError}
+      />
       <ConfirmationDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
