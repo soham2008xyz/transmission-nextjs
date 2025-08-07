@@ -126,7 +126,7 @@ export default function Home() {
         pageSize
       }
     },
-    autoResetPageIndex: false,
+    autoResetPageIndex: false
   });
 
   return (
