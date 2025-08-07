@@ -145,6 +145,26 @@ export default function Home() {
       <Navbar table={table} />
       <main className='container mx-auto py-12'>
         <DataTable table={table} columns={columns} />
+        {/* Status Bar */}
+        <div className='mt-4 text-sm text-muted-foreground'>
+          {(() => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const filteredRows = table.getFilteredRowModel().rows.length;
+            const totalRows = table.getPreFilteredRowModel().rows.length;
+            const start = filteredRows === 0 ? 0 : pageIndex * pageSize + 1;
+            const end = Math.min((pageIndex + 1) * pageSize, filteredRows);
+            const filtersActive = table.getState().columnFilters?.length > 0;
+            return (
+              <span>
+                {`Showing ${start}-${end} of ${filteredRows} results`}
+                {filtersActive && filteredRows !== totalRows
+                  ? ` (filtered from total ${totalRows} items)`
+                  : ""}
+              </span>
+            );
+          })()}
+        </div>
       </main>
       <ConfirmationDialog
         open={dialogOpen}
