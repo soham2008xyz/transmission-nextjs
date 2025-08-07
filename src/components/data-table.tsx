@@ -99,23 +99,71 @@ export function DataTable({ table, columns }) {
             disabled={!table.getCanPreviousPage()}>
             Previous
           </Button>
-          {/* Page number buttons */}
-          {Array.from({ length: table.getPageCount() }, (_, i) => (
-            <Button
-              key={i}
-              variant={
-                table.getState().pagination.pageIndex === i
-                  ? "default"
-                  : "outline"
-              }
-              size='sm'
-              onClick={() => table.setPageIndex(i)}
-              className={
-                table.getState().pagination.pageIndex === i ? "font-bold" : ""
-              }>
-              {i + 1}
-            </Button>
-          ))}
+          {/* Smart page number buttons with ellipsis */}
+          {(() => {
+            const pageCount = table.getPageCount();
+            const current = table.getState().pagination.pageIndex;
+            const pages = [];
+            // Always show first page
+            if (pageCount > 0) {
+              pages.push(0);
+            }
+            // Show previous 2 pages before current
+            for (let i = Math.max(1, current - 2); i < current; i++) {
+              pages.push(i);
+            }
+            // Show current page
+            if (current !== 0 && current !== pageCount - 1) {
+              pages.push(current);
+            }
+            // Show next 2 pages after current
+            for (
+              let i = current + 1;
+              i <= Math.min(pageCount - 2, current + 2);
+              i++
+            ) {
+              pages.push(i);
+            }
+            // Always show last page if more than one page
+            if (pageCount > 1) {
+              pages.push(pageCount - 1);
+            }
+            // Remove duplicates and sort
+            const uniquePages = Array.from(new Set(pages)).sort(
+              (a, b) => a - b
+            );
+            // Render buttons with ellipsis
+            return uniquePages
+              .map((page, idx) => {
+                // Add ellipsis if gap from previous page
+                if (idx > 0 && page - uniquePages[idx - 1] > 1) {
+                  return [
+                    <span key={`ellipsis-${page}`} className='px-1'>
+                      ...
+                    </span>,
+                    <Button
+                      key={page}
+                      variant={current === page ? "default" : "outline"}
+                      size='sm'
+                      onClick={() => table.setPageIndex(page)}
+                      className={current === page ? "font-bold" : ""}>
+                      {page + 1}
+                    </Button>
+                  ];
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={current === page ? "default" : "outline"}
+                    size='sm'
+                    onClick={() => table.setPageIndex(page)}
+                    className={current === page ? "font-bold" : ""}>
+                    {page + 1}
+                  </Button>
+                );
+              })
+              .flat();
+          })()}
           <Button
             variant='outline'
             size='sm'
