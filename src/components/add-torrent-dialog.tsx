@@ -14,7 +14,11 @@ import { Button } from "@/components/ui/button";
 interface AddTorrentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (magnetLink: string, torrentFile: File | null, destination: string) => Promise<void>;
+  onAdd: (
+    magnetLink: string,
+    torrentFile: File | null,
+    destination: string
+  ) => Promise<void>;
   error?: string;
 }
 

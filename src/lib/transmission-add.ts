@@ -4,7 +4,10 @@ const client = axios.create({
   baseURL: "/api/transmission/rpc"
 });
 
-export const addTorrentByMagnet = async (magnet: string, destination?: string) => {
+export const addTorrentByMagnet = async (
+  magnet: string,
+  destination?: string
+) => {
   await client.post("", {
     method: "torrent-add",
     arguments: {
