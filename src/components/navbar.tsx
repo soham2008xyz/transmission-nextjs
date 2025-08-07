@@ -9,13 +9,27 @@ import {
   DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Filter, Columns, Plus } from "lucide-react";
+import {
+  Filter,
+  Columns,
+  Plus,
+  Play,
+  Pause,
+  Trash2,
+  XCircle
+} from "lucide-react";
 import {
   statuses,
   statusMap,
   statusReverseMap,
   columnHeaderNames
 } from "@/lib/utils";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent
+} from "@/components/ui/tooltip";
 
 export function Navbar({
   table,
@@ -35,33 +49,93 @@ export function Navbar({
     <nav className='flex items-center justify-between p-4 bg-background border-b'>
       <div className='flex items-center space-x-2'>
         <h1 className='text-xl font-bold'>Transmission</h1>
-        <Button variant='default' onClick={onAddTorrentClick}>
-          <Plus className='mr-2 h-4 w-4' /> Add Torrent
-        </Button>
-        <Button
-          variant='outline'
-          onClick={onStartSelected}
-          disabled={selectedCount === 0}>
-          Start All
-        </Button>
-        <Button
-          variant='outline'
-          onClick={onStopSelected}
-          disabled={selectedCount === 0}>
-          Stop All
-        </Button>
-        <Button
-          variant='destructive'
-          onClick={() => onRemoveSelected(false)}
-          disabled={selectedCount === 0}>
-          Remove All
-        </Button>
-        <Button
-          variant='destructive'
-          onClick={() => onRemoveSelected(true)}
-          disabled={selectedCount === 0}>
-          Delete All
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant='default' onClick={onAddTorrentClick}>
+                <Plus className='h-4 w-4' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side='bottom'
+              align='center'
+              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              Add Torrent
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='outline'
+                onClick={onStartSelected}
+                disabled={selectedCount === 0}>
+                <Play className='h-4 w-4' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side='bottom'
+              align='center'
+              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              Start Selected
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='outline'
+                onClick={onStopSelected}
+                disabled={selectedCount === 0}>
+                <Pause className='h-4 w-4' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side='bottom'
+              align='center'
+              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              Stop Selected
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='destructive'
+                onClick={() => onRemoveSelected(false)}
+                disabled={selectedCount === 0}>
+                <Trash2 className='h-4 w-4' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side='bottom'
+              align='center'
+              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              Remove Selected
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='destructive'
+                onClick={() => onRemoveSelected(true)}
+                disabled={selectedCount === 0}>
+                <XCircle className='h-4 w-4' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side='bottom'
+              align='center'
+              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              Delete Selected
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <div className='flex items-center space-x-4'>
         <Input
