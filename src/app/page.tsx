@@ -5,7 +5,9 @@ import {
   getTorrents,
   startTorrent,
   stopTorrent,
-  removeTorrent
+  removeTorrent,
+  addTorrentByMagnet,
+  addTorrentByFile
 } from "@/lib/transmission";
 import { columns } from "@/components/columns";
 import { DataTable } from "@/components/data-table";
@@ -33,7 +35,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { addTorrentByMagnet, addTorrentByFile } from "@/lib/transmission-add";
 import { AddTorrentDialog } from "@/components/add-torrent-dialog";
 
 export default function Home() {

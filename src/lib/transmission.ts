@@ -87,3 +87,23 @@ export const getFreeSpace = async (
     total: data.arguments["total-size-bytes"] ?? data.arguments["size-bytes"] // fallback if not present
   };
 };
+
+export const addTorrentByMagnet = async (
+  magnet: string,
+  destination?: string
+) => {
+  await client.post("", {
+    method: "torrent-add",
+    arguments: {
+      filename: magnet,
+      ...(destination ? { "download-dir": destination } : {})
+    }
+  });
+};
+
+export const addTorrentByFile = async (file: File, destination?: string) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (destination) formData.append("download-dir", destination);
+  await client.post("/upload", formData);
+};
