@@ -21,11 +21,28 @@ import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { TorrentDetailsDialog } from "@/components/torrent-details-dialog";
 
 export default function Home() {
+  // Load initial state from localStorage
+  const getInitial = (key, fallback) => {
+    if (typeof window === "undefined") return fallback;
+    try {
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const [torrents, setTorrents] = useState<Torrent[]>([]);
-  const [sorting, setSorting] = useState([]);
-  const [columnFilters, setColumnFilters] = useState([]);
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [rowSelection, setRowSelection] = useState({});
+  const [sorting, setSorting] = useState(() => getInitial("table_sorting", []));
+  const [columnFilters, setColumnFilters] = useState(() =>
+    getInitial("table_columnFilters", [])
+  );
+  const [columnVisibility, setColumnVisibility] = useState(() =>
+    getInitial("table_columnVisibility", {})
+  );
+  const [rowSelection, setRowSelection] = useState(() =>
+    getInitial("table_rowSelection", {})
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogConfig, setDialogConfig] = useState({
     title: "",
@@ -34,8 +51,12 @@ export default function Home() {
   });
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedTorrent, setSelectedTorrent] = useState<Torrent | null>(null);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageIndex, setPageIndex] = useState(() =>
+    getInitial("table_pageIndex", 0)
+  );
+  const [pageSize, setPageSize] = useState(() =>
+    getInitial("table_pageSize", 10)
+  );
 
   const fetchTorrents = async () => {
     const torrents = await getTorrents();
@@ -128,6 +149,29 @@ export default function Home() {
     },
     autoResetPageIndex: false
   });
+
+  // Persist state to localStorage on change
+  useEffect(() => {
+    localStorage.setItem("table_sorting", JSON.stringify(sorting));
+  }, [sorting]);
+  useEffect(() => {
+    localStorage.setItem("table_columnFilters", JSON.stringify(columnFilters));
+  }, [columnFilters]);
+  useEffect(() => {
+    localStorage.setItem(
+      "table_columnVisibility",
+      JSON.stringify(columnVisibility)
+    );
+  }, [columnVisibility]);
+  useEffect(() => {
+    localStorage.setItem("table_rowSelection", JSON.stringify(rowSelection));
+  }, [rowSelection]);
+  useEffect(() => {
+    localStorage.setItem("table_pageIndex", JSON.stringify(pageIndex));
+  }, [pageIndex]);
+  useEffect(() => {
+    localStorage.setItem("table_pageSize", JSON.stringify(pageSize));
+  }, [pageSize]);
 
   return (
     <>
