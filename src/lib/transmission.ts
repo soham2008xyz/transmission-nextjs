@@ -38,6 +38,7 @@ export const getTorrentDetails = async (id: number) => {
         "peers",
         "pieces",
         "fileStats",
+        "files",
         "addedDate",
         "activityDate",
         "doneDate",

@@ -255,18 +255,57 @@ export function TorrentDetailsDialog({
               <p>Loading pieces...</p>
             )}
           </TabsContent>
-          <TabsContent value='files'>
-            {details ? (
-              <ul>
-                {details.fileStats.map((file: any, index: number) => (
-                  <li key={index}>
-                    {file.name} ({formatBytes(file.length)})
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Loading files...</p>
-            )}
+          <TabsContent value='files' className='flex-1 min-h-0'>
+            <div className='h-full overflow-y-auto'>
+              {details &&
+              details.files &&
+              details.fileStats &&
+              details.fileStats.length > 0 ? (
+                <table className='min-w-full w-full text-sm border border-muted rounded-md'>
+                  <thead>
+                    <tr>
+                      <th className='font-semibold p-2 text-left'>File Name</th>
+                      <th className='font-semibold p-2 text-left'>Size</th>
+                      <th className='font-semibold p-2 text-left'>
+                        Downloaded
+                      </th>
+                      <th className='font-semibold p-2 text-left'>Progress</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {details.fileStats.map((fileStat: any, index: number) => {
+                      const file = details.files[index];
+                      return (
+                        <tr key={index}>
+                          <td className='p-2'>{file?.name || "-"}</td>
+                          <td className='p-2'>
+                            {file?.length !== undefined
+                              ? formatBytes(file.length)
+                              : "-"}
+                          </td>
+                          <td className='p-2'>
+                            {fileStat.bytesCompleted !== undefined
+                              ? formatBytes(fileStat.bytesCompleted)
+                              : "-"}
+                          </td>
+                          <td className='p-2'>
+                            {file?.length > 0 &&
+                            fileStat.bytesCompleted !== undefined
+                              ? (
+                                  (fileStat.bytesCompleted / file.length) *
+                                  100
+                                ).toFixed(2) + "%"
+                              : "-"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <p>No files found.</p>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
