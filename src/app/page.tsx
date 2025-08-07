@@ -7,7 +7,7 @@ import {
   stopTorrent,
   removeTorrent
 } from "@/lib/transmission";
-import { Torrent, columns } from "@/components/columns";
+import { columns } from "@/components/columns";
 import { DataTable } from "@/components/data-table";
 import {
   useReactTable,
@@ -19,29 +19,23 @@ import {
 import { Navbar } from "@/components/navbar";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { TorrentDetailsDialog } from "@/components/torrent-details-dialog";
+import { useLocalStorage } from "@/lib/useLocalStorage";
+import { Torrent } from "@/lib/types";
 
 export default function Home() {
-  // Load initial state from localStorage
-  const getInitial = (key, fallback) => {
-    if (typeof window === "undefined") return fallback;
-    try {
-      const value = localStorage.getItem(key);
-      return value ? JSON.parse(value) : fallback;
-    } catch {
-      return fallback;
-    }
-  };
-
   const [torrents, setTorrents] = useState<Torrent[]>([]);
-  const [sorting, setSorting] = useState(() => getInitial("table_sorting", []));
-  const [columnFilters, setColumnFilters] = useState(() =>
-    getInitial("table_columnFilters", [])
+  const [sorting, setSorting] = useLocalStorage("table_sorting", []);
+  const [columnFilters, setColumnFilters] = useLocalStorage(
+    "table_columnFilters",
+    []
   );
-  const [columnVisibility, setColumnVisibility] = useState(() =>
-    getInitial("table_columnVisibility", {})
+  const [columnVisibility, setColumnVisibility] = useLocalStorage(
+    "table_columnVisibility",
+    {}
   );
-  const [rowSelection, setRowSelection] = useState(() =>
-    getInitial("table_rowSelection", {})
+  const [rowSelection, setRowSelection] = useLocalStorage(
+    "table_rowSelection",
+    {}
   );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogConfig, setDialogConfig] = useState({
@@ -51,12 +45,8 @@ export default function Home() {
   });
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedTorrent, setSelectedTorrent] = useState<Torrent | null>(null);
-  const [pageIndex, setPageIndex] = useState(() =>
-    getInitial("table_pageIndex", 0)
-  );
-  const [pageSize, setPageSize] = useState(() =>
-    getInitial("table_pageSize", 10)
-  );
+  const [pageIndex, setPageIndex] = useLocalStorage("table_pageIndex", 0);
+  const [pageSize, setPageSize] = useLocalStorage("table_pageSize", 10);
 
   const fetchTorrents = async () => {
     const torrents = await getTorrents();
@@ -149,29 +139,6 @@ export default function Home() {
     },
     autoResetPageIndex: false
   });
-
-  // Persist state to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("table_sorting", JSON.stringify(sorting));
-  }, [sorting]);
-  useEffect(() => {
-    localStorage.setItem("table_columnFilters", JSON.stringify(columnFilters));
-  }, [columnFilters]);
-  useEffect(() => {
-    localStorage.setItem(
-      "table_columnVisibility",
-      JSON.stringify(columnVisibility)
-    );
-  }, [columnVisibility]);
-  useEffect(() => {
-    localStorage.setItem("table_rowSelection", JSON.stringify(rowSelection));
-  }, [rowSelection]);
-  useEffect(() => {
-    localStorage.setItem("table_pageIndex", JSON.stringify(pageIndex));
-  }, [pageIndex]);
-  useEffect(() => {
-    localStorage.setItem("table_pageSize", JSON.stringify(pageSize));
-  }, [pageSize]);
 
   return (
     <>
