@@ -139,6 +139,40 @@ export default function Home() {
     }
   };
 
+  // Bulk action handlers
+  const selectedIds = Object.keys(rowSelection)
+    .filter((key) => rowSelection[key])
+    .map(Number);
+
+  const handleStartSelected = async () => {
+    await Promise.all(selectedIds.map((id) => startTorrent(id)));
+    await fetchTorrents();
+  };
+
+  const handleStopSelected = async () => {
+    await Promise.all(selectedIds.map((id) => stopTorrent(id)));
+    await fetchTorrents();
+  };
+
+  const handleRemoveSelected = async (deleteLocalData = false) => {
+    setDialogConfig({
+      title: deleteLocalData
+        ? `Permanently delete ${selectedIds.length} selected torrents?`
+        : `Remove ${selectedIds.length} selected torrents?`,
+      description: deleteLocalData
+        ? "This action cannot be undone. The torrents and their data will be permanently deleted."
+        : "This will remove the selected torrents from the list, but the data will remain on disk.",
+      onConfirm: async () => {
+        await Promise.all(
+          selectedIds.map((id) => removeTorrent(id, deleteLocalData))
+        );
+        await fetchTorrents();
+        setDialogOpen(false);
+      }
+    });
+    setDialogOpen(true);
+  };
+
   const table = useReactTable({
     data: torrents,
     columns,
@@ -181,7 +215,14 @@ export default function Home() {
 
   return (
     <>
-      <Navbar table={table} onAddTorrentClick={() => setAddDialogOpen(true)} />
+      <Navbar
+        table={table}
+        onAddTorrentClick={() => setAddDialogOpen(true)}
+        onStartSelected={handleStartSelected}
+        onStopSelected={handleStopSelected}
+        onRemoveSelected={handleRemoveSelected}
+        selectedCount={selectedIds.length}
+      />
       <main className='container mx-auto py-12'>
         <DataTable table={table} columns={columns} />
         {/* Status Bar */}

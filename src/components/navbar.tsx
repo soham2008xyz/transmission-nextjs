@@ -17,7 +17,14 @@ import {
   columnHeaderNames
 } from "@/lib/utils";
 
-export function Navbar({ table, onAddTorrentClick }) {
+export function Navbar({
+  table,
+  onAddTorrentClick,
+  onStartSelected,
+  onStopSelected,
+  onRemoveSelected,
+  selectedCount
+}) {
   const statusFilterValue = table.getColumn("status")?.getFilterValue();
   const statusValue =
     statusFilterValue !== undefined
@@ -30,6 +37,30 @@ export function Navbar({ table, onAddTorrentClick }) {
         <h1 className='text-xl font-bold'>Transmission</h1>
         <Button variant='default' onClick={onAddTorrentClick}>
           <Plus className='mr-2 h-4 w-4' /> Add Torrent
+        </Button>
+        <Button
+          variant='outline'
+          onClick={onStartSelected}
+          disabled={selectedCount === 0}>
+          Start All
+        </Button>
+        <Button
+          variant='outline'
+          onClick={onStopSelected}
+          disabled={selectedCount === 0}>
+          Stop All
+        </Button>
+        <Button
+          variant='destructive'
+          onClick={() => onRemoveSelected(false)}
+          disabled={selectedCount === 0}>
+          Remove All
+        </Button>
+        <Button
+          variant='destructive'
+          onClick={() => onRemoveSelected(true)}
+          disabled={selectedCount === 0}>
+          Delete All
         </Button>
       </div>
       <div className='flex items-center space-x-4'>
