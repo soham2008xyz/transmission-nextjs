@@ -1,10 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getTorrents, startTorrent, stopTorrent, removeTorrent } from "@/lib/transmission";
+import {
+  getTorrents,
+  startTorrent,
+  stopTorrent,
+  removeTorrent
+} from "@/lib/transmission";
 import { Torrent, columns } from "@/components/columns";
 import { DataTable } from "@/components/data-table";
-import { useReactTable, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel } from "@tanstack/react-table";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel
+} from "@tanstack/react-table";
 import { Navbar } from "@/components/navbar";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { TorrentDetailsDialog } from "@/components/torrent-details-dialog";
@@ -19,10 +30,12 @@ export default function Home() {
   const [dialogConfig, setDialogConfig] = useState({
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => {}
   });
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedTorrent, setSelectedTorrent] = useState<Torrent | null>(null);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchTorrents = async () => {
     const torrents = await getTorrents();
@@ -63,7 +76,7 @@ export default function Home() {
         await removeTorrent(id, deleteLocalData);
         await fetchTorrents();
         setDialogOpen(false);
-      },
+      }
     });
     setDialogOpen(true);
   };
@@ -83,7 +96,7 @@ export default function Home() {
       startTorrent: handleStartTorrent,
       stopTorrent: handleStopTorrent,
       removeTorrent: handleRemoveTorrent,
-      viewTorrentDetails: handleViewTorrentDetails,
+      viewTorrentDetails: handleViewTorrentDetails
     },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -93,18 +106,33 @@ export default function Home() {
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onPaginationChange: (updater) => {
+      if (typeof updater === "function") {
+        const newState = updater({ pageIndex, pageSize });
+        setPageIndex(newState.pageIndex);
+        setPageSize(newState.pageSize);
+      } else {
+        setPageIndex(updater.pageIndex);
+        setPageSize(updater.pageSize);
+      }
+    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: {
+        pageIndex,
+        pageSize
+      }
     },
+    autoResetPageIndex: false,
   });
 
   return (
     <>
       <Navbar table={table} />
-      <main className="container mx-auto py-12">
+      <main className='container mx-auto py-12'>
         <DataTable table={table} columns={columns} />
       </main>
       <ConfirmationDialog
