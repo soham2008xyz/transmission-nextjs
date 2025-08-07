@@ -27,10 +27,10 @@ export function Navbar({ table, onAddTorrentClick }) {
   return (
     <nav className='flex items-center justify-between p-4 bg-background border-b'>
       <div className='flex items-center space-x-2'>
+        <h1 className='text-xl font-bold'>Transmission</h1>
         <Button variant='default' onClick={onAddTorrentClick}>
           <Plus className='mr-2 h-4 w-4' /> Add Torrent
         </Button>
-        <h1 className='text-xl font-bold'>Transmission</h1>
       </div>
       <div className='flex items-center space-x-4'>
         <Input
