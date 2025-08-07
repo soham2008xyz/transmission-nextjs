@@ -12,17 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getFreeSpace } from "@/lib/transmission";
 import { formatBytes, validateDestination } from "@/lib/utils";
-
-interface AddTorrentDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAdd: (
-    magnetLink: string,
-    torrentFile: File | null,
-    destination: string
-  ) => Promise<void>;
-  error?: string;
-}
+import { AddTorrentDialogProps } from "@/lib/types";
 
 export function AddTorrentDialog({
   open,

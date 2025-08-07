@@ -1,5 +1,4 @@
-
-declare module '@tanstack/react-table' {
+declare module "@tanstack/react-table" {
   interface TableMeta<TData extends unknown> {
     startTorrent: (id: number) => void;
     stopTorrent: (id: number) => void;
@@ -30,4 +29,15 @@ export interface TorrentDetailsDialogProps {
   torrent: Torrent | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+export interface AddTorrentDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAdd: (
+    magnetLink: string,
+    torrentFile: File | null,
+    destination: string
+  ) => Promise<void>;
+  error?: string;
 }
