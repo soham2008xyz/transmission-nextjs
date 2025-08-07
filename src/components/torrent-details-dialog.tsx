@@ -50,9 +50,9 @@ export function TorrentDetailsDialog({
             <TabsTrigger value='pieces'>Pieces</TabsTrigger>
             <TabsTrigger value='files'>Files</TabsTrigger>
           </TabsList>
-          <TabsContent value='info' className='flex-1 flex flex-col min-h-0'>
-            <div className='flex-1 overflow-y-auto min-h-0'>
-              <table className='min-w-full w-full text-sm border border-muted rounded-md'>
+          <TabsContent value='info' className='flex-1 min-h-0'>
+            <div className='h-full overflow-y-auto'>
+              <table className='w-full text-sm border border-muted rounded-md'>
                 <tbody>
                   <tr>
                     <td className='font-semibold p-2'>ID</td>
@@ -196,18 +196,53 @@ export function TorrentDetailsDialog({
               </table>
             </div>
           </TabsContent>
-          <TabsContent value='peers'>
-            {details ? (
-              <ul>
-                {details.peers.map((peer: any, index: number) => (
-                  <li key={index}>
-                    {peer.address} - {peer.clientName}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Loading peers...</p>
-            )}
+          <TabsContent value='peers' className='flex-1 min-h-0'>
+            <div className='h-full overflow-y-auto'>
+              {details && details.peers && details.peers.length > 0 ? (
+                <table className='min-w-full w-full text-sm border border-muted rounded-md'>
+                  <thead>
+                    <tr>
+                      <th className='font-semibold p-2 text-left'>Address</th>
+                      <th className='font-semibold p-2 text-left'>Client</th>
+                      <th className='font-semibold p-2 text-left'>Progress</th>
+                      <th className='font-semibold p-2 text-left'>
+                        Download Speed
+                      </th>
+                      <th className='font-semibold p-2 text-left'>
+                        Upload Speed
+                      </th>
+                      <th className='font-semibold p-2 text-left'>Flags</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {details.peers.map((peer: any, index: number) => (
+                      <tr key={index}>
+                        <td className='p-2'>{peer.address}</td>
+                        <td className='p-2'>{peer.clientName}</td>
+                        <td className='p-2'>
+                          {peer.progress !== undefined
+                            ? (peer.progress * 100).toFixed(2) + "%"
+                            : "-"}
+                        </td>
+                        <td className='p-2'>
+                          {peer.rateToClient !== undefined
+                            ? formatBytes(peer.rateToClient) + "/s"
+                            : "-"}
+                        </td>
+                        <td className='p-2'>
+                          {peer.rateToPeer !== undefined
+                            ? formatBytes(peer.rateToPeer) + "/s"
+                            : "-"}
+                        </td>
+                        <td className='p-2'>{peer.flagStr || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>No peers found.</p>
+              )}
+            </div>
           </TabsContent>
           <TabsContent value='pieces'>
             {details ? (
