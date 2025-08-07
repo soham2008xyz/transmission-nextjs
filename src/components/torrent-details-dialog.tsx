@@ -34,154 +34,162 @@ export function TorrentDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-3xl'>
+      <DialogContent className='max-w-3xl h-[70vh] flex flex-col'>
         <DialogHeader>
           <DialogTitle>{torrent.name}</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue='info'>
+        <Tabs defaultValue='info' className='flex-1 flex flex-col min-h-0'>
           <TabsList>
             <TabsTrigger value='info'>Info</TabsTrigger>
             <TabsTrigger value='peers'>Peers</TabsTrigger>
             <TabsTrigger value='pieces'>Pieces</TabsTrigger>
             <TabsTrigger value='files'>Files</TabsTrigger>
           </TabsList>
-          <TabsContent value='info'>
-            <table className='min-w-full text-sm border border-muted rounded-md'>
-              <tbody>
-                <tr>
-                  <td className='font-semibold p-2'>ID</td>
-                  <td className='p-2'>{torrent.id}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Name</td>
-                  <td className='p-2'>{torrent.name}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Size</td>
-                  <td className='p-2'>{formatBytes(torrent.totalSize)}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Progress</td>
-                  <td className='p-2'>
-                    {(torrent.percentDone * 100).toFixed(2)}%
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Status</td>
-                  <td className='p-2'>{getStatusText(torrent.status)}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Download Speed</td>
-                  <td className='p-2'>{formatBytes(torrent.rateDownload)}/s</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Upload Speed</td>
-                  <td className='p-2'>{formatBytes(torrent.rateUpload)}/s</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Date Added</td>
-                  <td className='p-2'>
-                    {details?.addedDate
-                      ? new Date(details.addedDate * 1000).toLocaleString()
-                      : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Last Activity</td>
-                  <td className='p-2'>
-                    {details?.activityDate
-                      ? new Date(details.activityDate * 1000).toLocaleString()
-                      : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Done Date</td>
-                  <td className='p-2'>
-                    {details?.doneDate
-                      ? new Date(details.doneDate * 1000).toLocaleString()
-                      : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>ETA</td>
-                  <td className='p-2'>
-                    {details?.eta !== undefined
-                      ? details.eta > 0
-                        ? `${Math.floor(details.eta / 3600)}h ${Math.floor(
-                            (details.eta % 3600) / 60
-                          )}m`
-                        : "Done"
-                      : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Upload Ratio</td>
-                  <td className='p-2'>{details?.uploadRatio?.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Uploaded Ever</td>
-                  <td className='p-2'>
-                    {details?.uploadedEver
-                      ? formatBytes(details.uploadedEver)
-                      : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Downloaded Ever</td>
-                  <td className='p-2'>
-                    {details?.downloadedEver
-                      ? formatBytes(details.downloadedEver)
-                      : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Error</td>
-                  <td className='p-2'>{details?.errorString || "-"}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Creator</td>
-                  <td className='p-2'>{details?.creator || "-"}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Comment</td>
-                  <td className='p-2'>{details?.comment || "-"}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Hash</td>
-                  <td className='p-2'>{details?.hashString || "-"}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Download Directory</td>
-                  <td className='p-2'>{details?.downloadDir || "-"}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Private</td>
-                  <td className='p-2'>
-                    {details?.isPrivate !== undefined
-                      ? details.isPrivate
-                        ? "Yes"
-                        : "No"
-                      : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Piece Count</td>
-                  <td className='p-2'>{details?.pieceCount}</td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Piece Size</td>
-                  <td className='p-2'>
-                    {details?.pieceSize ? formatBytes(details.pieceSize) : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className='font-semibold p-2'>Tracker Stats</td>
-                  <td className='p-2'>
-                    {details?.trackerStats ? details.trackerStats.length : "-"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <TabsContent value='info' className='flex-1 flex flex-col min-h-0'>
+            <div className='flex-1 overflow-y-auto min-h-0'>
+              <table className='min-w-full w-full text-sm border border-muted rounded-md'>
+                <tbody>
+                  <tr>
+                    <td className='font-semibold p-2'>ID</td>
+                    <td className='p-2'>{torrent.id}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Name</td>
+                    <td className='p-2'>{torrent.name}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Size</td>
+                    <td className='p-2'>{formatBytes(torrent.totalSize)}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Progress</td>
+                    <td className='p-2'>
+                      {(torrent.percentDone * 100).toFixed(2)}%
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Status</td>
+                    <td className='p-2'>{getStatusText(torrent.status)}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Download Speed</td>
+                    <td className='p-2'>
+                      {formatBytes(torrent.rateDownload)}/s
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Upload Speed</td>
+                    <td className='p-2'>{formatBytes(torrent.rateUpload)}/s</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Date Added</td>
+                    <td className='p-2'>
+                      {details?.addedDate
+                        ? new Date(details.addedDate * 1000).toLocaleString()
+                        : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Last Activity</td>
+                    <td className='p-2'>
+                      {details?.activityDate
+                        ? new Date(details.activityDate * 1000).toLocaleString()
+                        : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Done Date</td>
+                    <td className='p-2'>
+                      {details?.doneDate
+                        ? new Date(details.doneDate * 1000).toLocaleString()
+                        : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>ETA</td>
+                    <td className='p-2'>
+                      {details?.eta !== undefined
+                        ? details.eta > 0
+                          ? `${Math.floor(details.eta / 3600)}h ${Math.floor(
+                              (details.eta % 3600) / 60
+                            )}m`
+                          : "Done"
+                        : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Upload Ratio</td>
+                    <td className='p-2'>{details?.uploadRatio?.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Uploaded Ever</td>
+                    <td className='p-2'>
+                      {details?.uploadedEver
+                        ? formatBytes(details.uploadedEver)
+                        : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Downloaded Ever</td>
+                    <td className='p-2'>
+                      {details?.downloadedEver
+                        ? formatBytes(details.downloadedEver)
+                        : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Error</td>
+                    <td className='p-2'>{details?.errorString || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Creator</td>
+                    <td className='p-2'>{details?.creator || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Comment</td>
+                    <td className='p-2'>{details?.comment || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Hash</td>
+                    <td className='p-2'>{details?.hashString || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Download Directory</td>
+                    <td className='p-2'>{details?.downloadDir || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Private</td>
+                    <td className='p-2'>
+                      {details?.isPrivate !== undefined
+                        ? details.isPrivate
+                          ? "Yes"
+                          : "No"
+                        : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Piece Count</td>
+                    <td className='p-2'>{details?.pieceCount}</td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Piece Size</td>
+                    <td className='p-2'>
+                      {details?.pieceSize
+                        ? formatBytes(details.pieceSize)
+                        : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='font-semibold p-2'>Tracker Stats</td>
+                    <td className='p-2'>
+                      {details?.trackerStats
+                        ? details.trackerStats.length
+                        : "-"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </TabsContent>
           <TabsContent value='peers'>
             {details ? (
