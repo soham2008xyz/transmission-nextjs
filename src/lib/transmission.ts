@@ -124,3 +124,19 @@ export const addTorrentByFile = async (file: File, destination?: string) => {
   if (destination) formData.append("download-dir", destination);
   await client.post("/upload", formData);
 };
+
+export const setFileWantedState = async (
+  torrentId: number,
+  fileIndices: number[],
+  wanted: boolean
+) => {
+  await client.post("", {
+    method: "torrent-set",
+    arguments: {
+      ids: [torrentId],
+      ...(wanted
+        ? { "files-wanted": fileIndices }
+        : { "files-unwanted": fileIndices })
+    }
+  });
+};

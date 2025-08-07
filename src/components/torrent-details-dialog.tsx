@@ -10,6 +10,7 @@ import { formatBytes, getStatusText } from "@/lib/utils";
 import { getTorrentDetails } from "@/lib/transmission";
 import { useEffect, useState } from "react";
 import { TorrentDetailsDialogProps } from "@/lib/types";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function TorrentDetailsDialog({
   torrent,
@@ -264,6 +265,7 @@ export function TorrentDetailsDialog({
                 <table className='min-w-full w-full text-sm border border-muted rounded-md'>
                   <thead>
                     <tr>
+                      <th className='font-semibold p-2 text-left'>Download</th>
                       <th className='font-semibold p-2 text-left'>File Name</th>
                       <th className='font-semibold p-2 text-left'>Size</th>
                       <th className='font-semibold p-2 text-left'>
@@ -275,8 +277,26 @@ export function TorrentDetailsDialog({
                   <tbody>
                     {details.fileStats.map((fileStat: any, index: number) => {
                       const file = details.files[index];
+                      const wanted = file?.wanted !== false; // Transmission: wanted=true/false
                       return (
                         <tr key={index}>
+                          <td className='p-2'>
+                            <Checkbox
+                              checked={wanted}
+                              onCheckedChange={async (checked) => {
+                                await import("@/lib/transmission").then((mod) =>
+                                  mod.setFileWantedState(
+                                    torrent.id,
+                                    [index],
+                                    !!checked
+                                  )
+                                );
+                              }}
+                              aria-label={`Toggle download for ${
+                                file?.name || "file"
+                              }`}
+                            />
+                          </td>
                           <td className='p-2'>{file?.name || "-"}</td>
                           <td className='p-2'>
                             {file?.length !== undefined
