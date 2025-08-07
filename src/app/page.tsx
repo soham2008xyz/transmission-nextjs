@@ -118,14 +118,15 @@ export default function Home() {
 
   const handleAddTorrent = async (
     magnetLink: string,
-    torrentFile: File | null
+    torrentFile: File | null,
+    destination: string
   ) => {
     setAddError("");
     try {
       if (magnetLink) {
-        await addTorrentByMagnet(magnetLink);
+        await addTorrentByMagnet(magnetLink, destination);
       } else if (torrentFile) {
-        await addTorrentByFile(torrentFile);
+        await addTorrentByFile(torrentFile, destination);
       } else {
         setAddError("Please provide a magnet link or select a file.");
         return;

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 interface AddTorrentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (magnetLink: string, torrentFile: File | null) => Promise<void>;
+  onAdd: (magnetLink: string, torrentFile: File | null, destination: string) => Promise<void>;
   error?: string;
 }
 
@@ -26,6 +26,7 @@ export function AddTorrentDialog({
 }: AddTorrentDialogProps) {
   const [magnetLink, setMagnetLink] = useState("");
   const [torrentFile, setTorrentFile] = useState<File | null>(null);
+  const [destination, setDestination] = useState("");
   const [localError, setLocalError] = useState("");
 
   const handleAdd = async () => {
@@ -34,9 +35,10 @@ export function AddTorrentDialog({
       setLocalError("Please provide a magnet link or select a file.");
       return;
     }
-    await onAdd(magnetLink, torrentFile);
+    await onAdd(magnetLink, torrentFile, destination);
     setMagnetLink("");
     setTorrentFile(null);
+    setDestination("");
   };
 
   return (
@@ -59,6 +61,11 @@ export function AddTorrentDialog({
             type='file'
             accept='.torrent'
             onChange={(e) => setTorrentFile(e.target.files?.[0] || null)}
+          />
+          <Input
+            placeholder='Destination path (optional)'
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
           />
           {(localError || error) && (
             <div className='text-destructive text-sm'>
