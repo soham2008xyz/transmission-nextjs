@@ -39,7 +39,7 @@ export function TorrentDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-3xl h-[70vh] flex flex-col'>
+      <DialogContent className='max-w-5xl h-[70vh] flex flex-col'>
         <DialogHeader>
           <DialogTitle>{torrent.name}</DialogTitle>
         </DialogHeader>
