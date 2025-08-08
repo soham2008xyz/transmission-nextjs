@@ -23,20 +23,8 @@ import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { TorrentDetailsDialog } from "@/components/torrent-details-dialog";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 import { Torrent } from "@/lib/types";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { AddTorrentDialog } from "@/components/add-torrent-dialog";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 
 export default function Home() {
   const [torrents, setTorrents] = useState<Torrent[]>([]);

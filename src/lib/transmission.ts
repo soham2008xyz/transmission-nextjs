@@ -1,5 +1,5 @@
 import axios from "axios";
-import { toast } from "@/lib/useToast";
+import { toast } from "sonner";
 
 const client = axios.create({
   baseURL: "/api/transmission/rpc"
@@ -27,11 +27,7 @@ export const getTorrents = async () => {
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
@@ -80,11 +76,7 @@ export const getTorrentDetails = async (id: number) => {
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
@@ -103,11 +95,7 @@ export const startTorrent = async (id: number) => {
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
@@ -126,11 +114,7 @@ export const stopTorrent = async (id: number) => {
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
@@ -150,11 +134,7 @@ export const removeTorrent = async (id: number, deleteLocalData = false) => {
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
@@ -180,11 +160,7 @@ export const getFreeSpace = async (
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
@@ -207,11 +183,7 @@ export const addTorrentByMagnet = async (
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
@@ -228,11 +200,7 @@ export const addTorrentByFile = async (file: File, destination?: string) => {
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
@@ -258,11 +226,7 @@ export const setFileWantedState = async (
       error?.message?.includes("Network Error") ||
       error?.code === "ECONNREFUSED"
     ) {
-      toast({
-        title: "Connection Error",
-        description: "Could not connect to Transmission RPC.",
-        variant: "destructive"
-      });
+      toast("Connection Error: Could not connect to Transmission RPC.");
     }
     throw error;
   }
