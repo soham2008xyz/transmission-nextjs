@@ -101,6 +101,12 @@ export async function POST(req: NextRequest) {
       const extra = Object.keys(body.arguments).filter((k) => !allowedArgs.includes(k));
       if (extra.length > 0) return forbidden('argument not allowed');
     }
+    // Enforce the file cap on the decoded data too; the body limit has slack.
+    const metainfo = body.arguments?.metainfo;
+    if (method === 'torrent-add' && typeof metainfo === 'string') {
+      const padding = metainfo.endsWith('==') ? 2 : metainfo.endsWith('=') ? 1 : 0;
+      if ((metainfo.length * 3) / 4 - padding > MAX_TORRENT_FILE_BYTES) return tooLarge();
+    }
 
     const { data } = await client.post('', body);
     return NextResponse.json(data);
