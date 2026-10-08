@@ -16,6 +16,7 @@ import { formatBytes, getStatusText } from "@/lib/utils";
 import { getTorrentDetails, setFileWantedState } from "@/lib/transmission";
 import { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 function formatEta(eta: number | undefined) {
   if (eta === undefined) return "-";
@@ -346,13 +347,25 @@ function FilesTab({
                 <Checkbox
                   checked={wanted}
                   onCheckedChange={async (checked) => {
-                    await setFileWantedState(
-                      torrentId,
-                      [index],
-                      !!checked
-                    );
-                    // Refetch details to sync UI
-                    onChange(await getTorrentDetails(torrentId));
+                    try {
+                      await setFileWantedState(
+                        torrentId,
+                        [index],
+                        !!checked
+                      );
+                    } catch (e) {
+                      toast.error(
+                        e instanceof Error && e.message
+                          ? e.message
+                          : "Failed to update file."
+                      );
+                    }
+                    // Refetch details to sync UI, also after a failure so the checkbox shows the real state
+                    try {
+                      onChange(await getTorrentDetails(torrentId));
+                    } catch {
+                      // The next poll will retry.
+                    }
                   }}
                   aria-label={`Toggle download for ${
                     file?.name || "file"
