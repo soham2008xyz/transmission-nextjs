@@ -49,6 +49,14 @@ export function isAllowedOrigin(headers: Headers, policy: OriginPolicy): boolean
   const forwarded = policy.trustProxy
     ? headers.get('x-forwarded-host')?.split(',')[0].trim()
     : undefined;
-  const host = (forwarded || headers.get('host'))?.trim().toLowerCase();
-  return !!host && new URL(parsed).host === host;
+  const host = (forwarded || headers.get('host'))?.trim();
+  if (!host) return false;
+  const { protocol, host: originHost } = new URL(parsed);
+  // Parse Host with the Origin's scheme so `nas.lan:443` and `nas.lan` compare
+  // equal for https (and `:80` for http), as URL does for the Origin.
+  try {
+    return new URL(`${protocol}//${host}`).host === originHost;
+  } catch {
+    return false;
+  }
 }

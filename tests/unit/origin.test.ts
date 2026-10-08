@@ -14,6 +14,10 @@ describe("isAllowedOrigin", () => {
 
   it("compares hosts case-insensitively and ignores default ports", () => {
     expect(check({ host: "NAS.lan", origin: "https://nas.LAN:443" })).toBe(true);
+    expect(check({ host: "nas.lan:443", origin: "https://nas.lan" })).toBe(true);
+    expect(check({ host: "nas.lan:80", origin: "http://nas.lan" })).toBe(true);
+    expect(check({ host: "nas.lan:443", origin: "http://nas.lan" })).toBe(false);
+    expect(check({ host: "127.0.0.1:3000", "x-forwarded-host": "nas.lan:443", origin: "https://nas.lan" }, { trustProxy: true, allowedOrigins: [] })).toBe(true);
   });
 
   it("does not compare the scheme, since TLS may end at a proxy", () => {
