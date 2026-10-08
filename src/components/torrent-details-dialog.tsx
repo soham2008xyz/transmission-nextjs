@@ -8,8 +8,73 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TorrentDetailsDialogProps } from "@/lib/types";
 import { formatBytes, getStatusText } from "@/lib/utils";
 import { getTorrentDetails, setFileWantedState } from "@/lib/transmission";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+
+function formatEta(eta: number | undefined) {
+  if (eta === undefined) return "-";
+  if (eta === -1) return "N/A";
+  if (eta === -2) return "Unknown";
+  if (eta === 0) return "Done";
+  return `${Math.floor(eta / 3600)}h ${Math.floor((eta % 3600) / 60)}m`;
+}
+
+function formatRatio(ratio: number | undefined) {
+  if (ratio === undefined) return "-";
+  if (ratio === -1) return "None";
+  if (ratio === -2) return "∞";
+  return ratio.toFixed(2);
+}
+
+function PieceMap({
+  pieces,
+  pieceCount
+}: {
+  pieces: string;
+  pieceCount: number;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cell = 6;
+  const cols = 100;
+  const rows = Math.ceil(pieceCount / cols);
+  let have = 0;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    const bytes = atob(pieces);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < pieceCount; i++) {
+      const done = ((bytes.charCodeAt(i >> 3) || 0) & (0x80 >> (i & 7))) !== 0;
+      ctx.fillStyle = done ? "#22c55e" : "#6b728055";
+      ctx.fillRect((i % cols) * cell, Math.floor(i / cols) * cell, cell - 1, cell - 1);
+    }
+  }, [pieces, pieceCount]);
+
+  try {
+    const bytes = atob(pieces);
+    for (let i = 0; i < pieceCount; i++) {
+      if (((bytes.charCodeAt(i >> 3) || 0) & (0x80 >> (i & 7))) !== 0) have++;
+    }
+  } catch {
+    return <p>Piece data unavailable.</p>;
+  }
+
+  return (
+    <div>
+      <p className='text-sm mb-2'>
+        {have} of {pieceCount} pieces complete
+      </p>
+      <canvas
+        ref={canvasRef}
+        width={cols * cell}
+        height={rows * cell}
+        style={{ maxWidth: "100%" }}
+      />
+    </div>
+  );
+}
 
 export function TorrentDetailsDialog({
   torrent,
@@ -18,24 +83,35 @@ export function TorrentDetailsDialog({
 }: TorrentDetailsDialogProps) {
   const [details, setDetails] = useState<any>(null);
 
+  const torrentId = torrent?.id;
+
   useEffect(() => {
+    setDetails(null);
+  }, [torrentId]);
+
+  useEffect(() => {
+    let cancelled = false;
     let interval: NodeJS.Timeout | null = null;
     if (open && torrent) {
       const fetchDetails = async () => {
         const torrentDetails = await getTorrentDetails(torrent.id);
-        setDetails(torrentDetails);
+        if (!cancelled) setDetails(torrentDetails);
       };
       fetchDetails();
       interval = setInterval(fetchDetails, 5000); // refresh every 5 seconds
     }
     return () => {
+      cancelled = true;
       if (interval) clearInterval(interval);
     };
-  }, [open, torrent]);
+  }, [open, torrentId]);
 
   if (!torrent) {
     return null;
   }
+
+  // Prefer fresh polled values; fall back to the prop snapshot until the first fetch returns.
+  const live = details?.id === torrent.id ? details : torrent;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,27 +140,27 @@ export function TorrentDetailsDialog({
                   </tr>
                   <tr>
                     <td className='font-semibold p-2'>Size</td>
-                    <td className='p-2'>{formatBytes(torrent.totalSize)}</td>
+                    <td className='p-2'>{formatBytes(live.totalSize)}</td>
                   </tr>
                   <tr>
                     <td className='font-semibold p-2'>Progress</td>
                     <td className='p-2'>
-                      {(torrent.percentDone * 100).toFixed(2)}%
+                      {(live.percentDone * 100).toFixed(2)}%
                     </td>
                   </tr>
                   <tr>
                     <td className='font-semibold p-2'>Status</td>
-                    <td className='p-2'>{getStatusText(torrent.status)}</td>
+                    <td className='p-2'>{getStatusText(live.status)}</td>
                   </tr>
                   <tr>
                     <td className='font-semibold p-2'>Download Speed</td>
                     <td className='p-2'>
-                      {formatBytes(torrent.rateDownload)}/s
+                      {formatBytes(live.rateDownload)}/s
                     </td>
                   </tr>
                   <tr>
                     <td className='font-semibold p-2'>Upload Speed</td>
-                    <td className='p-2'>{formatBytes(torrent.rateUpload)}/s</td>
+                    <td className='p-2'>{formatBytes(live.rateUpload)}/s</td>
                   </tr>
                   <tr>
                     <td className='font-semibold p-2'>Date Added</td>
@@ -113,23 +189,17 @@ export function TorrentDetailsDialog({
                   <tr>
                     <td className='font-semibold p-2'>ETA</td>
                     <td className='p-2'>
-                      {details?.eta !== undefined
-                        ? details.eta > 0
-                          ? `${Math.floor(details.eta / 3600)}h ${Math.floor(
-                              (details.eta % 3600) / 60
-                            )}m`
-                          : "Done"
-                        : "-"}
+                      {formatEta(details?.eta)}
                     </td>
                   </tr>
                   <tr>
                     <td className='font-semibold p-2'>Upload Ratio</td>
-                    <td className='p-2'>{details?.uploadRatio?.toFixed(2)}</td>
+                    <td className='p-2'>{formatRatio(details?.uploadRatio)}</td>
                   </tr>
                   <tr>
                     <td className='font-semibold p-2'>Uploaded Ever</td>
                     <td className='p-2'>
-                      {details?.uploadedEver
+                      {details?.uploadedEver !== undefined
                         ? formatBytes(details.uploadedEver)
                         : "-"}
                     </td>
@@ -137,7 +207,7 @@ export function TorrentDetailsDialog({
                   <tr>
                     <td className='font-semibold p-2'>Downloaded Ever</td>
                     <td className='p-2'>
-                      {details?.downloadedEver
+                      {details?.downloadedEver !== undefined
                         ? formatBytes(details.downloadedEver)
                         : "-"}
                     </td>
@@ -245,12 +315,15 @@ export function TorrentDetailsDialog({
             </div>
           </TabsContent>
           <TabsContent value='pieces'>
-            {details ? (
-              <div className='w-full h-32 overflow-y-auto bg-muted rounded-md p-2'>
-                <pre className='text-xs whitespace-pre-wrap break-all'>
-                  {details.pieces}
-                </pre>
+            {details?.pieces && details.pieceCount ? (
+              <div className='w-full max-h-[50vh] overflow-y-auto bg-muted rounded-md p-2'>
+                <PieceMap
+                  pieces={details.pieces}
+                  pieceCount={details.pieceCount}
+                />
               </div>
+            ) : details ? (
+              <p>No piece data.</p>
             ) : (
               <p>Loading pieces...</p>
             )}
