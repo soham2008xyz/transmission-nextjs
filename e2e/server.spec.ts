@@ -53,7 +53,7 @@ test.describe("basic auth", () => {
     expect(res.status()).toBe(200);
   });
 
-  // Known bug: proxy.ts compares Origin with req.nextUrl.origin, which `next
+  // Known bug (#48): proxy.ts compares Origin with req.nextUrl.origin, which `next
   // start` reports as http://localhost:<port> whatever the Host header says.
   // With auth on, a browser that reaches the app by IP or hostname gets 403 on
   // every POST, so the UI cannot even list torrents. Remove test.fail() once
