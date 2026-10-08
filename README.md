@@ -32,6 +32,7 @@ You need Node.js 20.9 or newer and a running Transmission daemon with RPC enable
 | `npm run build` | Build for production |
 | `npm run start` | Serve the production build |
 | `npm run lint` | Lint with ESLint |
+| `npm run typecheck` | Type-check with `tsc` |
 
 ## Configuration
 
