@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-const transmissionRpcUrl = process.env.TRANSMISSION_RPC_URL + '/transmission/rpc';
+const baseUrl = process.env.TRANSMISSION_RPC_URL;
+const transmissionRpcUrl = baseUrl + '/transmission/rpc';
 const username = process.env.TRANSMISSION_RPC_USERNAME;
 const password = process.env.TRANSMISSION_RPC_PASSWORD;
 
@@ -18,8 +19,12 @@ const client = axios.create({
 client.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response && error.response.status === 409) {
-      sessionId = error.response.headers['x-transmission-session-id'];
+    // Retry once with the new session id. A second 409, or a 409 without
+    // the header, fails instead of looping.
+    const newSessionId = error.response?.headers?.['x-transmission-session-id'];
+    if (error.response?.status === 409 && newSessionId && !error.config._retried) {
+      sessionId = newSessionId;
+      error.config._retried = true;
       error.config.headers['X-Transmission-Session-Id'] = sessionId;
       return client.request(error.config);
     }
@@ -56,14 +61,24 @@ function forbidden(message: string) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!baseUrl) {
+    console.error('TRANSMISSION_RPC_URL is not set');
+    return NextResponse.json({ result: 'server is not configured' }, { status: 500 });
+  }
+
   // Forms can't send application/json cross-site without a CORS preflight.
   if (!req.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
     return NextResponse.json({ result: 'content type must be application/json' }, { status: 415 });
   }
 
+  let body;
   try {
-    const body = await req.json();
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ result: 'invalid JSON body' }, { status: 400 });
+  }
 
+  try {
     const method = body?.method;
     if (typeof method !== 'string' || !ALLOWED_METHODS.has(method)) {
       return forbidden('method not allowed');
@@ -76,7 +91,12 @@ export async function POST(req: NextRequest) {
 
     const { data } = await client.post('', body);
     return NextResponse.json(data);
-  } catch (error: any) { // Changed type to any
-    return new NextResponse(error.message, { status: error.response?.status || 500 });
+  } catch (error: any) {
+    // Log details server-side only; they can include internal hostnames.
+    console.error('Transmission RPC request failed:', error?.message);
+    if (error?.response) {
+      return NextResponse.json({ result: 'Transmission returned an error' }, { status: error.response.status });
+    }
+    return NextResponse.json({ result: 'Transmission is unreachable' }, { status: 502 });
   }
 }
