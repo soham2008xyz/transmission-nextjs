@@ -12,6 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+function themeLabel(theme: string | undefined) {
+  if (theme === "light") return "Light";
+  if (theme === "dark") return "Dark";
+  return "System";
+}
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   // `theme` is undefined during SSR; render the label only after mount.
@@ -29,15 +35,7 @@ export function ThemeToggle() {
             <Sun className="absolute h-full w-full rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-full w-full rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </div>
-          <span className="ml-2">
-            {mounted
-              ? theme === "light"
-                ? "Light"
-                : theme === "dark"
-                  ? "Dark"
-                  : "System"
-              : ""}
-          </span>
+          <span className="ml-2">{mounted ? themeLabel(theme) : ""}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

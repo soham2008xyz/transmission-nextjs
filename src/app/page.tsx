@@ -137,7 +137,7 @@ export default function Home() {
     await fetchTorrents();
   };
 
-  const handleRemoveTorrent = async (id: number, deleteLocalData = false) => {
+  const handleRemoveTorrent = (id: number, deleteLocalData = false) => {
     const torrent = torrents.find((t) => t.id === id);
     const torrentName = torrent ? torrent.name : "this torrent";
     const title = deleteLocalData
@@ -225,7 +225,7 @@ export default function Home() {
     await fetchTorrents();
   };
 
-  const handleRemoveSelected = async (deleteLocalData = false) => {
+  const handleRemoveSelected = (deleteLocalData = false) => {
     setDialogConfig({
       title: deleteLocalData
         ? `Permanently delete ${selectedIds.length} selected torrents?`

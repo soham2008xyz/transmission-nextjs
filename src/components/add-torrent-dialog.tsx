@@ -25,7 +25,7 @@ export function AddTorrentDialog({
   onOpenChange,
   onAdd,
   error
-}: AddTorrentDialogProps) {
+}: Readonly<AddTorrentDialogProps>) {
   const [magnetLink, setMagnetLink] = useState("");
   const [torrentFile, setTorrentFile] = useState<File | null>(null);
   const [destination, setDestination] = useState("");

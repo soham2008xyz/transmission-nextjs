@@ -17,7 +17,7 @@ export function ConfirmationDialog({
   title,
   description,
   destructive = false,
-}: ConfirmationDialogProps) {
+}: Readonly<ConfirmationDialogProps>) {
   const [pending, setPending] = useState(false);
 
   const handleConfirm = async () => {

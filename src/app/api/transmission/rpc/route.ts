@@ -30,7 +30,7 @@ client.interceptors.response.use(
       error.config.headers['X-Transmission-Session-Id'] = sessionId;
       return client.request(error.config);
     }
-    return Promise.reject(error);
+    throw error;
   }
 );
 
@@ -62,6 +62,34 @@ function forbidden(message: string) {
   return NextResponse.json({ result: message }, { status: 403 });
 }
 
+function tooLarge() {
+  return NextResponse.json(
+    { result: `request too large (.torrent files are limited to ${formatBytes(MAX_TORRENT_FILE_BYTES)})` },
+    { status: 413 }
+  );
+}
+
+// Returns an error response if the RPC body may not be forwarded, or null if it may.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- parsed JSON body
+function rejectBody(body: any): NextResponse | null {
+  const method = body?.method;
+  if (typeof method !== 'string' || !ALLOWED_METHODS.has(method)) {
+    return forbidden('method not allowed');
+  }
+  const allowedArgs = ALLOWED_ARGUMENTS[method];
+  if (allowedArgs && body.arguments && typeof body.arguments === 'object') {
+    const extra = Object.keys(body.arguments).filter((k) => !allowedArgs.includes(k));
+    if (extra.length > 0) return forbidden('argument not allowed');
+  }
+  // Enforce the file cap on the decoded data too; the body limit has slack.
+  const metainfo = body.arguments?.metainfo;
+  if (method === 'torrent-add' && typeof metainfo === 'string') {
+    const padding = Number(metainfo.endsWith('=')) + Number(metainfo.endsWith('=='));
+    if ((metainfo.length * 3) / 4 - padding > MAX_TORRENT_FILE_BYTES) return tooLarge();
+  }
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   if (!baseUrl) {
     console.error('TRANSMISSION_RPC_URL is not set');
@@ -72,12 +100,6 @@ export async function POST(req: NextRequest) {
   if (!req.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
     return NextResponse.json({ result: 'content type must be application/json' }, { status: 415 });
   }
-
-  const tooLarge = () =>
-    NextResponse.json(
-      { result: `request too large (.torrent files are limited to ${formatBytes(MAX_TORRENT_FILE_BYTES)})` },
-      { status: 413 }
-    );
 
   const declaredLength = Number(req.headers.get('content-length'));
   if (declaredLength > MAX_RPC_BODY_BYTES) return tooLarge();
@@ -92,21 +114,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const method = body?.method;
-    if (typeof method !== 'string' || !ALLOWED_METHODS.has(method)) {
-      return forbidden('method not allowed');
-    }
-    const allowedArgs = ALLOWED_ARGUMENTS[method];
-    if (allowedArgs && body.arguments && typeof body.arguments === 'object') {
-      const extra = Object.keys(body.arguments).filter((k) => !allowedArgs.includes(k));
-      if (extra.length > 0) return forbidden('argument not allowed');
-    }
-    // Enforce the file cap on the decoded data too; the body limit has slack.
-    const metainfo = body.arguments?.metainfo;
-    if (method === 'torrent-add' && typeof metainfo === 'string') {
-      const padding = Number(metainfo.endsWith('=')) + Number(metainfo.endsWith('=='));
-      if ((metainfo.length * 3) / 4 - padding > MAX_TORRENT_FILE_BYTES) return tooLarge();
-    }
+    const rejection = rejectBody(body);
+    if (rejection) return rejection;
 
     const { data } = await client.post('', body);
     return NextResponse.json(data);

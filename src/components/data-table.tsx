@@ -27,7 +27,7 @@ interface DataTableProps {
   columns: ColumnDef<Torrent>[];
 }
 
-export function DataTable({ table, columns }: DataTableProps) {
+export function DataTable({ table, columns }: Readonly<DataTableProps>) {
   return (
     <div>
       <div className='rounded-md border'>
@@ -144,7 +144,7 @@ export function DataTable({ table, columns }: DataTableProps) {
             );
             // Render buttons with ellipsis
             return uniquePages
-              .map((page, idx) => {
+              .flatMap((page, idx) => {
                 // Add ellipsis if gap from previous page
                 if (idx > 0 && page - uniquePages[idx - 1] > 1) {
                   return [
@@ -171,8 +171,7 @@ export function DataTable({ table, columns }: DataTableProps) {
                     {page + 1}
                   </Button>
                 );
-              })
-              .flat();
+              });
           })()}
           <Button
             variant='outline'
