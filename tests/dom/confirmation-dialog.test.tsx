@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 
@@ -65,5 +65,74 @@ describe("ConfirmationDialog", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Confirm" })).toBeEnabled());
     await user.keyboard("{Escape}");
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("keeps the dialog open and shows the error when onConfirm rejects", async () => {
+    const unhandled = vi.fn();
+    process.on("unhandledRejection", unhandled);
+    try {
+      const onConfirm = vi.fn().mockRejectedValue(new Error("Daemon unreachable"));
+      const { user, onOpenChange } = setup(onConfirm);
+
+      await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Daemon unreachable");
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(screen.getByRole("button", { name: "Confirm" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
+
+      // Let any stray rejection surface before asserting.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(unhandled).not.toHaveBeenCalled();
+
+      // Retrying clears the message while the action runs.
+      onConfirm.mockImplementationOnce(() => new Promise<void>(() => {}));
+      await user.click(screen.getByRole("button", { name: "Confirm" }));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    } finally {
+      process.off("unhandledRejection", unhandled);
+    }
+  });
+
+  it("clears the error when the parent closes the dialog through `open`", async () => {
+    const onConfirm = vi.fn().mockRejectedValue(new Error("Daemon unreachable"));
+    const props = {
+      onOpenChange: vi.fn(),
+      onConfirm,
+      title: "Remove ubuntu.iso?",
+      description: "The data will remain on disk.",
+    };
+    const user = userEvent.setup();
+    const { rerender } = render(<ConfirmationDialog open {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Daemon unreachable");
+
+    rerender(<ConfirmationDialog open={false} {...props} />);
+    rerender(<ConfirmationDialog open {...props} />);
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("ignores a rejection that settles after the parent closed the dialog", async () => {
+    let reject!: (e: Error) => void;
+    const onConfirm = vi.fn(() => new Promise<void>((_, r) => (reject = r)));
+    const props = {
+      onOpenChange: vi.fn(),
+      onConfirm,
+      title: "Remove ubuntu.iso?",
+      description: "The data will remain on disk.",
+    };
+    const user = userEvent.setup();
+    const { rerender } = render(<ConfirmationDialog open {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+    rerender(<ConfirmationDialog open={false} {...props} />);
+    await act(async () => reject(new Error("Daemon unreachable")));
+    rerender(<ConfirmationDialog open {...props} />);
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
