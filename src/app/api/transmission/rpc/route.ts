@@ -20,7 +20,7 @@ const client = axios.create({
 
 client.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  (error) => {
     // Retry once with the new session id. A second 409, or a 409 without
     // the header, fails instead of looping.
     const newSessionId = error.response?.headers?.['x-transmission-session-id'];
