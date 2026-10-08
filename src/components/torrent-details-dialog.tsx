@@ -276,10 +276,7 @@ export function TorrentDetailsDialog({
                   <tbody>
                     {details.fileStats.map((fileStat: any, index: number) => {
                       const file = details.files[index];
-                      // Determine wanted state from filesWanted/filesUnwanted
-                      const wanted = details.filesWanted
-                        ? details.filesWanted.includes(index)
-                        : true;
+                      const wanted = fileStat.wanted;
                       return (
                         <tr key={index}>
                           <td className='p-2'>
