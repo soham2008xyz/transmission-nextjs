@@ -1,0 +1,94 @@
+name: Bug Report
+description: File a bug report so we can fix the Transmission Next.js web UI
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please fill in the
+        parts you can — the more context, the faster we can reproduce it.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What went wrong? What did you expect to happen instead?
+      placeholder: e.g., Torrents stop showing progress after the page has been open a few minutes
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The shortest sequence that triggers the bug.
+      placeholder: |
+        1. Open the web UI at http://localhost:3000
+        2. Click "Add" and upload a .torrent file
+        3. See ...
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Version of the UI, Transmission daemon, OS, and browser.
+      placeholder: |
+        - App version / commit: e.g., main @ abc123, v0.1.0
+        - How you run it: e.g., npm run dev, next start, docker
+        - Transmission daemon & version: e.g., linuxserver/transmission 4.0.6, native 3.0.0
+        - Server OS: e.g., Ubuntu 24.04, macOS 14.5
+        - Browser & version: e.g., Chrome 126, Safari 17.5
+        - Node.js version (if build-related): e.g., 22.22.2
+        - Behind a reverse proxy? e.g., none, Caddy, nginx
+        - Basic auth on the app (APP_USERNAME/APP_PASSWORD)? e.g., yes / no
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots or logs
+      description: Browser console errors, network responses, or screenshots that help us see it.
+      placeholder: Paste console output or drag in a screenshot.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: test
+    attributes:
+      label: Can you add a failing test?
+      description: This app has unit, component, integration and e2e tests. A failing test that reproduces this is the fastest fix.
+      options:
+        - I'm not sure yet
+        - Yes, I'll add one
+        - No, but I can share logs/network traces instead
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else relevant (related issues, workarounds, when it started).
+    validations:
+      required: false

@@ -1,0 +1,56 @@
+name: Task
+description: A piece of maintenance or refactoring work that isn't a bug or a feature
+title: "Task: "
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for chores, refactors, dependency bumps, and infrastructure work.
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What needs to be accomplished?
+      placeholder: e.g., Upgrade to Next.js 16 and resolve breaking changes
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: The specifics of the work, including files or areas touched.
+    validations:
+      required: false
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Subtasks or verification steps for this work.
+      placeholder: |
+        - [ ] Upgrade dependencies
+        - [ ] Run `npm run typecheck` and `npm run lint`
+        - [ ] Run `npm test`
+        - [ ] Add a changeset / update README if needed
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Blockers or related work this depends on.
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Additional context or considerations.
+    validations:
+      required: false
