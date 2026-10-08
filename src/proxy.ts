@@ -23,13 +23,23 @@ function unauthorized() {
 export function proxy(req: NextRequest) {
   if (!username || !password) return NextResponse.next();
 
+  // Browsers resend cached basic-auth credentials on cross-site requests,
+  // so refuse state-changing requests that come from another origin.
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    const origin = req.headers.get('origin');
+    if (origin && origin !== req.nextUrl.origin) {
+      return new NextResponse('Cross-origin request blocked', { status: 403 });
+    }
+  }
+
   const header = req.headers.get('authorization') || '';
   const [scheme, encoded] = header.split(' ');
   if (scheme?.toLowerCase() !== 'basic' || !encoded) return unauthorized();
 
   let decoded = '';
   try {
-    decoded = atob(encoded);
+    const bytes = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
+    decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
   } catch {
     return unauthorized();
   }

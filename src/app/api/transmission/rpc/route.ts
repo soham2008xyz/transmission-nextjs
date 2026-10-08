@@ -56,6 +56,11 @@ function forbidden(message: string) {
 }
 
 export async function POST(req: NextRequest) {
+  // Forms can't send application/json cross-site without a CORS preflight.
+  if (!req.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+    return NextResponse.json({ result: 'content type must be application/json' }, { status: 415 });
+  }
+
   try {
     const body = await req.json();
 
