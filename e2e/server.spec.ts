@@ -53,13 +53,7 @@ test.describe("basic auth", () => {
     expect(res.status()).toBe(200);
   });
 
-  // Known bug (#48): proxy.ts compares Origin with req.nextUrl.origin, which `next
-  // start` reports as http://localhost:<port> whatever the Host header says.
-  // With auth on, a browser that reaches the app by IP or hostname gets 403 on
-  // every POST, so the UI cannot even list torrents. Remove test.fail() once
-  // the check uses the request's real host.
   test("allows a same-origin POST when the app is reached by IP", async () => {
-    test.fail();
     const res = await fetch(LOOPBACK_URL + RPC, {
       method: "POST",
       headers: {

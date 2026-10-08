@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAllowedOrigin, originPolicyFromEnv } from '@/lib/origin';
 
 // Opt-in basic auth. Set APP_USERNAME and APP_PASSWORD to turn it on.
 const username = process.env.APP_USERNAME;
 const password = process.env.APP_PASSWORD;
+const originPolicy = originPolicyFromEnv(process.env);
 
 function safeEqual(a: string, b: string) {
   let diff = a.length ^ b.length;
@@ -26,8 +28,7 @@ export function proxy(req: NextRequest) {
   // Browsers resend cached basic-auth credentials on cross-site requests,
   // so refuse state-changing requests that come from another origin.
   if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-    const origin = req.headers.get('origin');
-    if (origin && origin !== req.nextUrl.origin) {
+    if (!isAllowedOrigin(req.headers, originPolicy)) {
       return new NextResponse('Cross-origin request blocked', { status: 403 });
     }
   }
