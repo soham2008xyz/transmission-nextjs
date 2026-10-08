@@ -50,7 +50,8 @@ The tests come in four layers:
 | Integration | `tests/integration` | The RPC route against a Transmission daemon in Docker |
 | End-to-end | `e2e` | `next start` with basic auth on, in Chromium, against a Transmission daemon in Docker |
 
-`npm test` needs nothing but Node.js 22 or newer (the app itself runs on 20.9). The integration and end-to-end tests start
+`npm test` needs nothing but Node.js 22.22.2+, 24.15+ or 26+ (Vitest and jsdom
+support no odd-numbered releases; the app itself runs on 20.9+). The integration and end-to-end tests start
 their own throwaway daemon (`lscr.io/linuxserver/transmission`, pinned in
 `tests/support/daemon.ts`) with [Testcontainers](https://testcontainers.com), so
 Docker must be running. They create `.torrent` files on the fly, seed their data
