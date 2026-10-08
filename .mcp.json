@@ -10,6 +10,16 @@
         "-c",
         "exec npx -y mcp-remote https://api.sonarcloud.io/mcp --header \"Authorization: Bearer $SONARQUBE_TOKEN\" --header \"SONARQUBE_ORG: soham2008xyz\""
       ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--browser",
+        "chromium",
+        "--isolated"
+      ]
     }
   }
 }
