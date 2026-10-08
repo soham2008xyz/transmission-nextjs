@@ -134,7 +134,7 @@ export const columns: ColumnDef<Torrent>[] = [
       );
     },
     cell: ({ row }) => {
-      const percentDone = parseFloat(row.getValue("percentDone")) * 100;
+      const percentDone = Number.parseFloat(row.getValue("percentDone")) * 100;
       return `${percentDone.toFixed(2)}%`;
     },
     size: 100,
