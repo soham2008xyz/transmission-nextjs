@@ -1,9 +1,6 @@
 import type { DaemonInfo } from "../tests/support/daemon";
 
 export const PORT = 3100;
-// Served on loopback but reached as "localhost": proxy.ts compares Origin with
-// req.nextUrl.origin, which `next start` always reports as localhost. See the
-// known-bug test in server.spec.ts.
 export const BASE_URL = `http://localhost:${PORT}`;
 export const LOOPBACK_URL = `http://127.0.0.1:${PORT}`;
 

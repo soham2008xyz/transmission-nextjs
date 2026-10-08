@@ -3,11 +3,14 @@ import { NextRequest } from "next/server";
 
 const ORIGIN = "http://localhost:3000";
 
-// proxy.ts reads APP_USERNAME and APP_PASSWORD when it loads.
-async function loadProxy(username?: string, password?: string) {
+// proxy.ts reads its settings from the environment when it loads.
+async function loadProxy(username?: string, password?: string, extraEnv: Record<string, string> = {}) {
   vi.resetModules();
   vi.stubEnv("APP_USERNAME", username);
   vi.stubEnv("APP_PASSWORD", password);
+  vi.stubEnv("APP_TRUST_PROXY", undefined);
+  vi.stubEnv("APP_ORIGIN", undefined);
+  for (const [key, value] of Object.entries(extraEnv)) vi.stubEnv(key, value);
   return import("@/proxy");
 }
 
@@ -17,14 +20,17 @@ function basic(credentials: string | Uint8Array) {
 }
 
 function request(
-  { method = "GET", path = "/", authorization, origin }: {
+  { method = "GET", path = "/", authorization, origin, host = "localhost:3000", headers: extra = {} }: {
     method?: string;
     path?: string;
     authorization?: string;
     origin?: string;
+    host?: string;
+    headers?: Record<string, string>;
   } = {},
 ) {
-  const headers = new Headers();
+  // The Host header a real server receives; the URL's host is what Next reports.
+  const headers = new Headers({ host, ...extra });
   if (authorization) headers.set("authorization", authorization);
   if (origin) headers.set("origin", origin);
   return new NextRequest(ORIGIN + path, { method, headers });
@@ -122,6 +128,57 @@ describe("with auth on", () => {
       const { proxy } = await loadProxy("admin", "secret");
       const res = proxy(request({ method: "POST", authorization, origin: ORIGIN }));
       expect(passedThrough(res)).toBe(true);
+    });
+
+    it("allows a POST whose Origin matches the Host header, whatever URL Next reports", async () => {
+      const { proxy } = await loadProxy("admin", "secret");
+      for (const host of ["192.168.1.20:3101", "nas.lan:3101", "nas.lan"]) {
+        const origin = `http://${host}`;
+        const res = proxy(request({ method: "POST", authorization, origin, host }));
+        expect(passedThrough(res)).toBe(true);
+      }
+    });
+
+    it("blocks an Origin that does not match the Host header", async () => {
+      const { proxy } = await loadProxy("admin", "secret");
+      const res = proxy(
+        request({ method: "POST", authorization, host: "nas.lan:3101", origin: "http://localhost:3000" }),
+      );
+      expect(res.status).toBe(403);
+    });
+
+    it("ignores X-Forwarded-Host unless APP_TRUST_PROXY is set", async () => {
+      const { proxy } = await loadProxy("admin", "secret");
+      const res = proxy(
+        request({
+          method: "POST",
+          authorization,
+          origin: "https://evil.example",
+          headers: { "x-forwarded-host": "evil.example" },
+        }),
+      );
+      expect(res.status).toBe(403);
+    });
+
+    it("uses X-Forwarded-Host when APP_TRUST_PROXY=true", async () => {
+      const { proxy } = await loadProxy("admin", "secret", { APP_TRUST_PROXY: "true" });
+      const res = proxy(
+        request({
+          method: "POST",
+          authorization,
+          origin: "https://nas.example.com",
+          headers: { "x-forwarded-host": "nas.example.com", "x-forwarded-proto": "https" },
+        }),
+      );
+      expect(passedThrough(res)).toBe(true);
+    });
+
+    it("accepts an origin listed in APP_ORIGIN and still blocks others", async () => {
+      const { proxy } = await loadProxy("admin", "secret", { APP_ORIGIN: "https://nas.example.com" });
+      const allowed = proxy(request({ method: "POST", authorization, origin: "https://nas.example.com" }));
+      expect(passedThrough(allowed)).toBe(true);
+      const blocked = proxy(request({ method: "POST", authorization, origin: "https://evil.example" }));
+      expect(blocked.status).toBe(403);
     });
 
     it("allows a POST with no Origin header", async () => {

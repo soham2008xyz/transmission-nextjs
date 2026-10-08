@@ -78,6 +78,8 @@ Set these in `.env.local` (see `.env.example`).
 | `TRANSMISSION_RPC_PASSWORD` | Transmission RPC password |
 | `APP_USERNAME` | Optional. Username for basic auth on this app |
 | `APP_PASSWORD` | Optional. Password for basic auth on this app |
+| `APP_ORIGIN` | Optional. Comma-separated origins (scheme, host, port) that may send state-changing requests when basic auth is on, such as `https://nas.example.com`. Needed only when a reverse proxy rewrites the `Host` header |
+| `APP_TRUST_PROXY` | Optional. Set to `true` to read the public host from `X-Forwarded-Host` instead of `Host` for that check. Only enable it when a proxy you control sets or overwrites that header |
 
 ## Security
 
@@ -87,6 +89,17 @@ The app signs every request to Transmission with the server's RPC credentials.
 Set `APP_USERNAME` and `APP_PASSWORD` to require basic auth on the UI and the
 API. Auth stays off if you leave either unset, so set both before you expose the
 app beyond a trusted network, and serve it over HTTPS.
+
+With auth on, the app also refuses POST, PUT, PATCH and DELETE requests whose
+`Origin` header names another site, because browsers resend cached basic-auth
+credentials on cross-site requests. It compares the `Origin` host with the
+request's `Host` header, so reaching the app by IP, LAN hostname or a proxy that
+passes `Host` through works with no extra setup. Browsers set `Host` themselves,
+and a page on another site cannot change it. Behind a proxy that rewrites
+`Host`, set `APP_ORIGIN` to the public URL (preferred), or set
+`APP_TRUST_PROXY=true` if the proxy always sets `X-Forwarded-Host`. Any client
+can send that header, so leave `APP_TRUST_PROXY` off unless the app is reachable
+only through that proxy.
 
 The RPC route only forwards the methods the UI uses (`torrent-get`,
 `torrent-start-now`, `torrent-stop`, `torrent-remove`, `torrent-add`,
