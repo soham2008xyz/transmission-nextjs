@@ -4,7 +4,7 @@ A web UI for a Transmission daemon.
 
 ## Setup
 
-You need Node.js 22.22.2+, 24.15+ or 26+ (`.nvmrc` pins 22 for nvm, fnm and similar) and a running Transmission daemon with RPC enabled.
+You need Node.js 22.22.2+, 24.15+ or 26+ (`.nvmrc` pins 22.22.2 for nvm, fnm and similar) and a running Transmission daemon with RPC enabled.
 
 1. Install dependencies:
 
