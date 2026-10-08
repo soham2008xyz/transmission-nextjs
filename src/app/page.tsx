@@ -128,7 +128,7 @@ export default function Home() {
       setAddDialogOpen(false);
       await fetchTorrents();
     } catch (e) {
-      setAddError("Failed to add torrent.");
+      setAddError(e instanceof Error ? e.message : "Failed to add torrent.");
     }
   };
 
