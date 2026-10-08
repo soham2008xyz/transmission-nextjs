@@ -38,7 +38,7 @@ export const rpc = async <T = any>(
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
-      if (!error.response || status === 502) {
+      if (!error.response || status === 502 || status === 503 || status === 504) {
         throw new RpcError("Could not connect to Transmission.", true);
       }
       const reason = error.response.data?.result;
