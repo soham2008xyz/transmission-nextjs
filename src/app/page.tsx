@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  RpcError,
   getTorrents,
   startTorrent,
   stopTorrent,
@@ -26,11 +27,15 @@ import { TorrentDetailsDialog } from "@/components/torrent-details-dialog";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 import { Torrent } from "@/lib/types";
 import { AddTorrentDialog } from "@/components/add-torrent-dialog";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
+
+const errorMessage = (e: unknown, fallback: string) =>
+  e instanceof Error && e.message ? e.message : fallback;
 
 export default function Home() {
   const [torrents, setTorrents] = useState<Torrent[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [disconnected, setDisconnected] = useState(false);
   const [sorting, setSorting] = useLocalStorage<SortingState>("table_sorting", []);
   const [columnFilters, setColumnFilters] = useLocalStorage<ColumnFiltersState>(
     "table_columnFilters",
@@ -55,7 +60,16 @@ export default function Home() {
   const [addError, setAddError] = useState("");
 
   const fetchTorrents = async () => {
-    const torrents: Torrent[] = await getTorrents();
+    let torrents: Torrent[];
+    try {
+      torrents = await getTorrents();
+    } catch (e) {
+      // Keep the last rows and show one persistent banner, not a toast per poll.
+      if (e instanceof RpcError && e.unreachable) setDisconnected(true);
+      else console.error("Failed to fetch torrents:", e);
+      return;
+    }
+    setDisconnected(false);
     setTorrents(torrents);
     setLoaded(true);
     // Drop selections for torrents that no longer exist
@@ -75,12 +89,20 @@ export default function Home() {
   }, []);
 
   const handleStartTorrent = async (id: number) => {
-    await startTorrent(id);
+    try {
+      await startTorrent(id);
+    } catch (e) {
+      toast.error(errorMessage(e, "Failed to start torrent."));
+    }
     await fetchTorrents();
   };
 
   const handleStopTorrent = async (id: number) => {
-    await stopTorrent(id);
+    try {
+      await stopTorrent(id);
+    } catch (e) {
+      toast.error(errorMessage(e, "Failed to stop torrent."));
+    }
     await fetchTorrents();
   };
 
@@ -98,9 +120,13 @@ export default function Home() {
       title,
       description,
       onConfirm: async () => {
-        await removeTorrent(id, deleteLocalData);
-        await fetchTorrents();
+        try {
+          await removeTorrent(id, deleteLocalData);
+        } catch (e) {
+          toast.error(errorMessage(e, "Failed to remove torrent."));
+        }
         setDialogOpen(false);
+        await fetchTorrents();
       }
     });
     setDialogOpen(true);
@@ -118,7 +144,7 @@ export default function Home() {
     magnetLink: string,
     torrentFile: File | null,
     destination: string
-  ) => {
+  ): Promise<boolean> => {
     setAddError("");
     try {
       if (magnetLink) {
@@ -127,13 +153,21 @@ export default function Home() {
         await addTorrentByFile(torrentFile, destination);
       } else {
         setAddError("Please provide a magnet link or select a file.");
-        return;
+        return false;
       }
-      setAddDialogOpen(false);
-      await fetchTorrents();
     } catch (e) {
       setAddError(e instanceof Error ? e.message : "Failed to add torrent.");
+      return false;
     }
+    setAddDialogOpen(false);
+    // The torrent is added; a failed refresh must not read as a failed add.
+    await fetchTorrents().catch(() => {});
+    return true;
+  };
+
+  const handleAddDialogOpenChange = (open: boolean) => {
+    if (!open) setAddError("");
+    setAddDialogOpen(open);
   };
 
   // Bulk action handlers
@@ -142,12 +176,20 @@ export default function Home() {
     .map(Number);
 
   const handleStartSelected = async () => {
-    await Promise.all(selectedIds.map((id) => startTorrent(id)));
+    try {
+      await Promise.all(selectedIds.map((id) => startTorrent(id)));
+    } catch (e) {
+      toast.error(errorMessage(e, "Failed to start torrents."));
+    }
     await fetchTorrents();
   };
 
   const handleStopSelected = async () => {
-    await Promise.all(selectedIds.map((id) => stopTorrent(id)));
+    try {
+      await Promise.all(selectedIds.map((id) => stopTorrent(id)));
+    } catch (e) {
+      toast.error(errorMessage(e, "Failed to stop torrents."));
+    }
     await fetchTorrents();
   };
 
@@ -160,11 +202,15 @@ export default function Home() {
         ? "This action cannot be undone. The torrents and their data will be permanently deleted."
         : "This will remove the selected torrents from the list, but the data will remain on disk.",
       onConfirm: async () => {
-        await Promise.all(
-          selectedIds.map((id) => removeTorrent(id, deleteLocalData))
-        );
-        await fetchTorrents();
+        try {
+          await Promise.all(
+            selectedIds.map((id) => removeTorrent(id, deleteLocalData))
+          );
+        } catch (e) {
+          toast.error(errorMessage(e, "Failed to remove torrents."));
+        }
         setDialogOpen(false);
+        await fetchTorrents();
       }
     });
     setDialogOpen(true);
@@ -238,6 +284,15 @@ export default function Home() {
         selectedCount={selectedIds.length}
       />
       <main className='container mx-auto py-12'>
+        {disconnected && (
+          <div
+            role='alert'
+            className='mb-4 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive'
+          >
+            Disconnected: could not reach Transmission. Showing the last known
+            data; retrying every 5 seconds.
+          </div>
+        )}
         <DataTable table={table} columns={columns} />
         {/* Status Bar */}
         <div className='mt-4 text-sm text-muted-foreground'>
@@ -263,7 +318,7 @@ export default function Home() {
       {/* Add Torrent Dialog */}
       <AddTorrentDialog
         open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
+        onOpenChange={handleAddDialogOpenChange}
         onAdd={handleAddTorrent}
         error={addError}
       />

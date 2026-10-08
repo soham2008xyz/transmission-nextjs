@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { getFreeSpace } from "@/lib/transmission";
 import { formatBytes, validateDestination } from "@/lib/utils";
 import { AddTorrentDialogProps } from "@/lib/types";
+
+const FREE_SPACE_DEBOUNCE_MS = 400;
 
 export function AddTorrentDialog({
   open,
@@ -29,23 +31,36 @@ export function AddTorrentDialog({
     total: number;
   } | null>(null);
   const [diskLoading, setDiskLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!destination) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- clears stale disk info when the field empties
       setDiskSpace(null);
+      setDiskLoading(false);
       return;
     }
+    // Wait for typing to pause, and ignore replies for an older path.
+    let stale = false;
     setDiskLoading(true);
-    getFreeSpace(destination)
-      .then((info) => {
-        setDiskSpace(info);
-        setDiskLoading(false);
-      })
-      .catch(() => {
-        setDiskSpace(null);
-        setDiskLoading(false);
-      });
+    const timer = setTimeout(() => {
+      getFreeSpace(destination)
+        .then((info) => {
+          if (stale) return;
+          setDiskSpace(info);
+          setDiskLoading(false);
+        })
+        .catch(() => {
+          if (stale) return;
+          setDiskSpace(null);
+          setDiskLoading(false);
+        });
+    }, FREE_SPACE_DEBOUNCE_MS);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
   }, [destination]);
 
   const handleAdd = async () => {
@@ -59,10 +74,18 @@ export function AddTorrentDialog({
       setLocalError("Please provide a magnet link or select a file.");
       return;
     }
-    await onAdd(magnetLink, torrentFile, destination);
-    setMagnetLink("");
-    setTorrentFile(null);
-    setDestination("");
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const added = await onAdd(magnetLink, torrentFile, destination);
+      if (!added) return;
+      setMagnetLink("");
+      setTorrentFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setDestination("");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -82,6 +105,7 @@ export function AddTorrentDialog({
           />
           <div>or</div>
           <Input
+            ref={fileInputRef}
             type='file'
             accept='.torrent'
             onChange={(e) => setTorrentFile(e.target.files?.[0] || null)}
@@ -91,6 +115,12 @@ export function AddTorrentDialog({
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
           />
+          {magnetLink && torrentFile && (
+            <div className='text-xs text-muted-foreground'>
+              Both a magnet link and a file are set. Only the magnet link will
+              be added.
+            </div>
+          )}
           {diskLoading && destination && (
             <div className='text-xs text-muted-foreground'>
               Checking disk space...
@@ -109,7 +139,9 @@ export function AddTorrentDialog({
           )}
         </div>
         <DialogFooter>
-          <Button onClick={handleAdd}>Add</Button>
+          <Button onClick={handleAdd} disabled={submitting}>
+            {submitting ? "Adding..." : "Add"}
+          </Button>
           <DialogClose asChild>
             <Button variant='outline'>Cancel</Button>
           </DialogClose>
