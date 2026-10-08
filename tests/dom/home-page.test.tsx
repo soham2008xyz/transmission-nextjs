@@ -6,6 +6,7 @@ import {
   RpcError,
   addTorrentByFile,
   addTorrentByMagnet,
+  getFreeSpace,
   getTorrentDetails,
   getTorrents,
   removeTorrent,
@@ -80,6 +81,9 @@ beforeEach(() => {
     vi.mocked(fn).mockResolvedValue(undefined);
   }
   vi.mocked(getTorrentDetails).mockReturnValue(new Promise(() => {}));
+  // The add dialog looks up free space on a debounce timer whenever a destination is typed,
+  // so the mock must always return a promise, however late that timer fires.
+  vi.mocked(getFreeSpace).mockResolvedValue({ free: 1024, total: 4096 });
 });
 
 afterEach(() => {
@@ -257,6 +261,8 @@ describe("Home", () => {
       await user.type(screen.getByPlaceholderText("Destination path (optional)"), "/data");
       await user.click(screen.getByRole("button", { name: "Add" }));
       expect(addTorrentByFile).toHaveBeenCalledWith(file, "/data");
+      // Let the dialog close so its pending free-space lookup is cancelled before the test ends.
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     });
 
     it("keeps the dialog open with the error when adding fails", async () => {
