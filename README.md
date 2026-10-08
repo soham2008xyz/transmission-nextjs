@@ -4,7 +4,7 @@ A web UI for a Transmission daemon.
 
 ## Setup
 
-You need Node.js 20.9 or newer and a running Transmission daemon with RPC enabled.
+You need Node.js 22 or newer (`.nvmrc` pins 22 for nvm, fnm and similar) and a running Transmission daemon with RPC enabled.
 
 1. Install dependencies:
 
@@ -51,7 +51,7 @@ The tests come in four layers:
 | End-to-end | `e2e` | `next start` with basic auth on, in Chromium, against a Transmission daemon in Docker |
 
 `npm test` needs nothing but Node.js 22.22.2+, 24.15+ or 26+ (Vitest and jsdom
-support no odd-numbered releases; the app itself runs on 20.9+). The integration and end-to-end tests start
+support no odd-numbered releases; the app itself needs Node.js 22+). The integration and end-to-end tests start
 their own throwaway daemon (`lscr.io/linuxserver/transmission`, pinned in
 `tests/support/daemon.ts`) with [Testcontainers](https://testcontainers.com), so
 Docker must be running. They create `.torrent` files on the fly, seed their data
