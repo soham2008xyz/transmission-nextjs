@@ -48,7 +48,6 @@ export interface TorrentDetails extends Torrent {
   uploadRatio?: number;
   uploadedEver?: number;
   downloadedEver?: number;
-  errorString?: string;
   creator?: string;
   comment?: string;
   hashString?: string;

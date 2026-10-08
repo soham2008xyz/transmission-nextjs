@@ -15,8 +15,11 @@ import {
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   // `theme` is undefined during SSR; render the label only after mount.
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   return (
     <DropdownMenu>

@@ -3,6 +3,8 @@ import axios from "axios";
 
 const client = axios.create({
   baseURL: "/api/transmission/rpc",
+  // A hung request must fail so the chained poll can retry.
+  timeout: 15000,
 });
 
 export class RpcError extends Error {
