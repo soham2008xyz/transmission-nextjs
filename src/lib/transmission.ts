@@ -142,14 +142,15 @@ export const removeTorrent = async (
 
 export const getFreeSpace = async (
   path: string,
-): Promise<{ free: number; total: number }> => {
+): Promise<{ free: number; total?: number }> => {
   const data = await rpc("free-space", {
     path,
   });
-  // Transmission returns 'size-bytes' (free) and 'total-size-bytes' (total)
+  // Transmission 4.x returns 'size-bytes' (free) and 'total_size' (total).
+  // Some versions may use 'total-size-bytes'. Leave total unset if absent.
   return {
     free: data["size-bytes"],
-    total: data["total-size-bytes"] ?? data["size-bytes"], // fallback if not present
+    total: data["total_size"] ?? data["total-size-bytes"],
   };
 };
 
