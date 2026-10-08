@@ -26,6 +26,8 @@ function formatRatio(ratio: number | undefined) {
   return ratio.toFixed(2);
 }
 
+const MAX_PIECE_CELLS = 10000;
+
 function PieceMap({
   pieces,
   pieceCount
@@ -36,35 +38,52 @@ function PieceMap({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cell = 6;
   const cols = 100;
-  const rows = Math.ceil(pieceCount / cols);
+  // Group pieces into at most MAX_PIECE_CELLS cells to keep the bitmap small.
+  const perCell = Math.ceil(pieceCount / MAX_PIECE_CELLS);
+  const cellCount = Math.ceil(pieceCount / perCell);
+  const rows = Math.ceil(cellCount / cols);
+
+  let bytes: string | null = null;
+  try {
+    bytes = atob(pieces);
+  } catch {
+    bytes = null;
+  }
+
   let have = 0;
+  const cellFill: number[] = [];
+  if (bytes) {
+    for (let c = 0; c < cellCount; c++) {
+      const start = c * perCell;
+      const end = Math.min(start + perCell, pieceCount);
+      let done = 0;
+      for (let i = start; i < end; i++) {
+        if (((bytes.charCodeAt(i >> 3) || 0) & (0x80 >> (i & 7))) !== 0) done++;
+      }
+      have += done;
+      cellFill.push(done / (end - start));
+    }
+  }
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-    const bytes = atob(pieces);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < pieceCount; i++) {
-      const done = ((bytes.charCodeAt(i >> 3) || 0) & (0x80 >> (i & 7))) !== 0;
-      ctx.fillStyle = done ? "#22c55e" : "#6b728055";
-      ctx.fillRect((i % cols) * cell, Math.floor(i / cols) * cell, cell - 1, cell - 1);
-    }
-  }, [pieces, pieceCount]);
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, cols * cell, rows * cell);
+    cellFill.forEach((fill, c) => {
+      ctx.fillStyle = fill > 0 ? "#22c55e" : "#6b728055";
+      ctx.globalAlpha = fill > 0 ? 0.35 + 0.65 * fill : 1;
+      ctx.fillRect((c % cols) * cell, Math.floor(c / cols) * cell, cell - 1, cell - 1);
+    });
+    ctx.globalAlpha = 1;
+  });
 
-  try {
-    const bytes = atob(pieces);
-    for (let i = 0; i < pieceCount; i++) {
-      if (((bytes.charCodeAt(i >> 3) || 0) & (0x80 >> (i & 7))) !== 0) have++;
-    }
-  } catch {
-    return <p>Piece data unavailable.</p>;
-  }
+  if (!bytes) return <p>Piece data unavailable.</p>;
 
   return (
     <div>
       <p className='text-sm mb-2'>
         {have} of {pieceCount} pieces complete
+        {perCell > 1 && ` (each square covers ${perCell} pieces)`}
       </p>
       <canvas
         ref={canvasRef}
@@ -86,11 +105,9 @@ export function TorrentDetailsDialog({
   const torrentId = torrent?.id;
 
   useEffect(() => {
-    setDetails(null);
-  }, [torrentId]);
-
-  useEffect(() => {
     let cancelled = false;
+    // Drop cached details on every open or torrent change so the fresher prop shows first.
+    setDetails(null);
     let interval: NodeJS.Timeout | null = null;
     if (open && torrent) {
       const fetchDetails = async () => {
