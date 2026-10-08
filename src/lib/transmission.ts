@@ -2,26 +2,61 @@ import axios from "axios";
 import { toast } from "sonner";
 
 const client = axios.create({
-  baseURL: "/api/transmission/rpc"
+  baseURL: "/api/transmission/rpc",
 });
+
+export class RpcError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RpcError";
+  }
+}
+
+interface RpcResponse<T> {
+  result: string;
+  arguments: T;
+}
+
+/**
+ * Sends one RPC call and returns its `arguments`.
+ * Transmission reports most failures as HTTP 200 with a non-"success"
+ * `result`, so this throws an RpcError in that case.
+ */
+export const rpc = async <T = any>(
+  method: string,
+  args: Record<string, unknown> = {},
+): Promise<T> => {
+  const { data } = await client.post<RpcResponse<T>>("", {
+    method,
+    arguments: args,
+  });
+  if (data?.result !== "success") {
+    throw new RpcError(data?.result || "Unexpected RPC response");
+  }
+  return data.arguments;
+};
+
+// torrent-add reports a duplicate as a successful call
+const assertNotDuplicate = (data: any) => {
+  if (data?.["torrent-duplicate"]) {
+    throw new RpcError("Torrent already exists");
+  }
+};
 
 export const getTorrents = async () => {
   try {
-    const { data } = await client.post("", {
-      method: "torrent-get",
-      arguments: {
-        fields: [
-          "id",
-          "name",
-          "totalSize",
-          "percentDone",
-          "rateDownload",
-          "rateUpload",
-          "status"
-        ]
-      }
+    const data = await rpc("torrent-get", {
+      fields: [
+        "id",
+        "name",
+        "totalSize",
+        "percentDone",
+        "rateDownload",
+        "rateUpload",
+        "status",
+      ],
     });
-    return data.arguments.torrents;
+    return data.torrents;
   } catch (error: any) {
     if (
       error?.message?.includes("Network Error") ||
@@ -35,42 +70,39 @@ export const getTorrents = async () => {
 
 export const getTorrentDetails = async (id: number) => {
   try {
-    const { data } = await client.post("", {
-      method: "torrent-get",
-      arguments: {
-        ids: [id],
-        fields: [
-          "id",
-          "name",
-          "totalSize",
-          "percentDone",
-          "rateDownload",
-          "rateUpload",
-          "status",
-          "peers",
-          "pieces",
-          "fileStats",
-          "files",
-          "addedDate",
-          "activityDate",
-          "doneDate",
-          "eta",
-          "uploadRatio",
-          "uploadedEver",
-          "downloadedEver",
-          "errorString",
-          "creator",
-          "comment",
-          "hashString",
-          "downloadDir",
-          "isPrivate",
-          "pieceCount",
-          "pieceSize",
-          "trackerStats"
-        ]
-      }
+    const data = await rpc("torrent-get", {
+      ids: [id],
+      fields: [
+        "id",
+        "name",
+        "totalSize",
+        "percentDone",
+        "rateDownload",
+        "rateUpload",
+        "status",
+        "peers",
+        "pieces",
+        "fileStats",
+        "files",
+        "addedDate",
+        "activityDate",
+        "doneDate",
+        "eta",
+        "uploadRatio",
+        "uploadedEver",
+        "downloadedEver",
+        "errorString",
+        "creator",
+        "comment",
+        "hashString",
+        "downloadDir",
+        "isPrivate",
+        "pieceCount",
+        "pieceSize",
+        "trackerStats",
+      ],
     });
-    return data.arguments.torrents[0];
+    return data.torrents[0];
   } catch (error: any) {
     if (
       error?.message?.includes("Network Error") ||
@@ -84,11 +116,8 @@ export const getTorrentDetails = async (id: number) => {
 
 export const startTorrent = async (id: number) => {
   try {
-    await client.post("", {
-      method: "torrent-start-now",
-      arguments: {
-        ids: [id]
-      }
+    await rpc("torrent-start-now", {
+      ids: [id],
     });
   } catch (error: any) {
     if (
@@ -103,11 +132,8 @@ export const startTorrent = async (id: number) => {
 
 export const stopTorrent = async (id: number) => {
   try {
-    await client.post("", {
-      method: "torrent-stop",
-      arguments: {
-        ids: [id]
-      }
+    await rpc("torrent-stop", {
+      ids: [id],
     });
   } catch (error: any) {
     if (
@@ -122,12 +148,9 @@ export const stopTorrent = async (id: number) => {
 
 export const removeTorrent = async (id: number, deleteLocalData = false) => {
   try {
-    await client.post("", {
-      method: "torrent-remove",
-      arguments: {
-        "ids": [id],
-        "delete-local-data": deleteLocalData
-      }
+    await rpc("torrent-remove", {
+      ids: [id],
+      "delete-local-data": deleteLocalData,
     });
   } catch (error: any) {
     if (
@@ -141,19 +164,16 @@ export const removeTorrent = async (id: number, deleteLocalData = false) => {
 };
 
 export const getFreeSpace = async (
-  path: string
+  path: string,
 ): Promise<{ free: number; total: number }> => {
   try {
-    const { data } = await client.post("", {
-      method: "free-space",
-      arguments: {
-        path
-      }
+    const data = await rpc("free-space", {
+      path,
     });
     // Transmission returns 'size-bytes' (free) and 'total-size-bytes' (total)
     return {
-      free: data.arguments["size-bytes"],
-      total: data.arguments["total-size-bytes"] ?? data.arguments["size-bytes"] // fallback if not present
+      free: data["size-bytes"],
+      total: data["total-size-bytes"] ?? data["size-bytes"], // fallback if not present
     };
   } catch (error: any) {
     if (
@@ -168,16 +188,14 @@ export const getFreeSpace = async (
 
 export const addTorrentByMagnet = async (
   magnet: string,
-  destination?: string
+  destination?: string,
 ) => {
   try {
-    await client.post("", {
-      method: "torrent-add",
-      arguments: {
-        filename: magnet,
-        ...(destination ? { "download-dir": destination } : {})
-      }
+    const data = await rpc("torrent-add", {
+      filename: magnet,
+      ...(destination ? { "download-dir": destination } : {}),
     });
+    assertNotDuplicate(data);
   } catch (error: any) {
     if (
       error?.message?.includes("Network Error") ||
@@ -197,13 +215,11 @@ export const addTorrentByFile = async (file: File, destination?: string) => {
     for (let i = 0; i < bytes.length; i += chunkSize) {
       binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
     }
-    await client.post("", {
-      method: "torrent-add",
-      arguments: {
-        metainfo: btoa(binary),
-        ...(destination ? { "download-dir": destination } : {})
-      }
+    const data = await rpc("torrent-add", {
+      metainfo: btoa(binary),
+      ...(destination ? { "download-dir": destination } : {}),
     });
+    assertNotDuplicate(data);
   } catch (error: any) {
     if (
       error?.message?.includes("Network Error") ||
@@ -218,17 +234,14 @@ export const addTorrentByFile = async (file: File, destination?: string) => {
 export const setFileWantedState = async (
   torrentId: number,
   fileIndices: number[],
-  wanted: boolean
+  wanted: boolean,
 ) => {
   try {
-    await client.post("", {
-      method: "torrent-set",
-      arguments: {
-        ids: [torrentId],
-        ...(wanted
-          ? { "files-wanted": fileIndices }
-          : { "files-unwanted": fileIndices })
-      }
+    await rpc("torrent-set", {
+      ids: [torrentId],
+      ...(wanted
+        ? { "files-wanted": fileIndices }
+        : { "files-unwanted": fileIndices }),
     });
   } catch (error: any) {
     if (
