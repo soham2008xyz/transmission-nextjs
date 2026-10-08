@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { toast } from "sonner";
 import { TorrentDetailsDialog } from "@/components/torrent-details-dialog";
 import { getTorrentDetails, setFileWantedState } from "@/lib/transmission";
 import type { Torrent, TorrentDetails } from "@/lib/types";
@@ -9,6 +10,8 @@ vi.mock("@/lib/transmission", () => ({
   getTorrentDetails: vi.fn(),
   setFileWantedState: vi.fn(),
 }));
+
+vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
 
 const torrent: Torrent = {
   id: 7,
@@ -289,6 +292,31 @@ describe("TorrentDetailsDialog", () => {
 
       await user.click(screen.getByRole("checkbox", { name: "Toggle download for ubuntu/README" }));
       expect(setFileWantedState).toHaveBeenLastCalledWith(7, [1], true);
+    });
+
+    it("shows a toast and refetches when toggling a file fails", async () => {
+      const { user } = renderDialog();
+      await user.click(screen.getByRole("tab", { name: "Files" }));
+      const iso = await screen.findByRole("checkbox", { name: "Toggle download for ubuntu/disk.iso" });
+      const unhandled = vi.fn();
+      process.on("unhandledRejection", unhandled);
+
+      vi.mocked(setFileWantedState).mockRejectedValue(new Error("connection refused"));
+      vi.mocked(getTorrentDetails).mockClear();
+      await user.click(iso);
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith("connection refused"));
+      await waitFor(() => expect(getTorrentDetails).toHaveBeenCalledWith(7));
+      // The checkbox keeps showing the real (unchanged) state.
+      expect(iso).toBeChecked();
+
+      // A failing refetch is swallowed too.
+      vi.mocked(getTorrentDetails).mockRejectedValue(new Error("gone"));
+      await user.click(iso);
+      await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(2));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      process.off("unhandledRejection", unhandled);
+      expect(unhandled).not.toHaveBeenCalled();
     });
 
     it("says when there are no files", async () => {
