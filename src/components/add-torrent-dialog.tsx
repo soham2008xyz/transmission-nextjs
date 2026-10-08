@@ -28,7 +28,7 @@ export function AddTorrentDialog({
   const [localError, setLocalError] = useState("");
   const [diskSpace, setDiskSpace] = useState<{
     free: number;
-    total: number;
+    total?: number;
   } | null>(null);
   const [diskLoading, setDiskLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -128,8 +128,9 @@ export function AddTorrentDialog({
           )}
           {diskSpace && (
             <div className='text-xs text-muted-foreground'>
-              Free: {formatBytes(diskSpace.free)} / Total:{" "}
-              {formatBytes(diskSpace.total)}
+              Free: {formatBytes(diskSpace.free)}
+              {diskSpace.total != null &&
+                ` / Total: ${formatBytes(diskSpace.total)}`}
             </div>
           )}
           {(localError || error) && (
