@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialogProps } from "@/lib/types";
 
@@ -20,33 +20,29 @@ export function ConfirmationDialog({
 }: Readonly<ConfirmationDialogProps>) {
   const [pending, setPending] = useState(false);
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ session: number; message: string } | null>(null);
+  const [session, setSession] = useState(0);
   const [prevOpen, setPrevOpen] = useState(open);
 
-  // The parent can close the dialog through `open` without calling
-  // onOpenChange, so drop a stale error whenever it closes.
+  // Each close starts a new session, including a close the parent makes through
+  // `open` without calling onOpenChange. An error only shows in the session
+  // that raised it, so a rejection settling after a close stays hidden.
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (!open) setError(null);
+    if (!open) setSession((s) => s + 1);
   }
-
-  // Bumped on every attempt and every close, so a rejection that settles after
-  // the dialog closed can't bring back a stale error.
-  const attempt = useRef(0);
-  useEffect(() => {
-    if (!open) attempt.current++;
-  }, [open]);
 
   const handleConfirm = async () => {
     if (pending) return;
     setPending(true);
     setError(null);
-    const current = ++attempt.current;
     try {
       await onConfirm();
     } catch (err) {
-      if (attempt.current !== current) return;
-      setError(err instanceof Error && err.message ? err.message : "Something went wrong.");
+      setError({
+        session,
+        message: err instanceof Error && err.message ? err.message : "Something went wrong.",
+      });
     } finally {
       setPending(false);
     }
@@ -65,9 +61,9 @@ export function ConfirmationDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        {error && (
+        {error?.session === session && (
           <p role="alert" className="text-sm text-destructive">
-            {error}
+            {error.message}
           </p>
         )}
         <DialogFooter>
