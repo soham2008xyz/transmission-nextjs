@@ -20,28 +20,44 @@ export function ConfirmationDialog({
 }: Readonly<ConfirmationDialogProps>) {
   const [pending, setPending] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleConfirm = async () => {
     if (pending) return;
     setPending(true);
+    setError(null);
     try {
       await onConfirm();
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : "Something went wrong.");
     } finally {
       setPending(false);
     }
   };
 
+  const handleOpenChange = (next: boolean) => {
+    if (pending) return;
+    if (!next) setError(null);
+    onOpenChange(next);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <DialogFooter>
           <Button
             variant="outline"
             disabled={pending}
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
           >
             Cancel
           </Button>

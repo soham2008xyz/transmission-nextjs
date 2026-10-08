@@ -66,4 +66,32 @@ describe("ConfirmationDialog", () => {
     await user.keyboard("{Escape}");
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("keeps the dialog open and shows the error when onConfirm rejects", async () => {
+    const unhandled = vi.fn();
+    process.on("unhandledRejection", unhandled);
+    try {
+      const onConfirm = vi.fn().mockRejectedValue(new Error("Daemon unreachable"));
+      const { user, onOpenChange } = setup(onConfirm);
+
+      await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Daemon unreachable");
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(screen.getByRole("button", { name: "Confirm" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
+
+      // Let any stray rejection surface before asserting.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(unhandled).not.toHaveBeenCalled();
+
+      // Retrying clears the message while the action runs.
+      onConfirm.mockImplementationOnce(() => new Promise<void>(() => {}));
+      await user.click(screen.getByRole("button", { name: "Confirm" }));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    } finally {
+      process.off("unhandledRejection", unhandled);
+    }
+  });
 });
