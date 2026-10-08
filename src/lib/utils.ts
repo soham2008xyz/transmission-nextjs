@@ -103,7 +103,11 @@ export const columnHeaderNames: { [key: string]: string } = {
 
 export function validateDestination(path: string): string {
   if (!path) return "";
-  if (!/^\/.+/.test(path)) return "Path must start with /";
-  if (path.length < 2) return "Path is too short";
+  const isPosix = /^\/.+/.test(path);
+  const isWindowsDrive = /^[A-Za-z]:[\\/].*/.test(path);
+  const isUnc = /^\\\\[^\\]+\\.+/.test(path);
+  if (!isPosix && !isWindowsDrive && !isUnc) {
+    return "Path must be absolute (e.g. /downloads or C:\\Downloads)";
+  }
   return "";
 }

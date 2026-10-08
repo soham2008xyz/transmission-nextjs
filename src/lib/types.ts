@@ -15,12 +15,16 @@ export type Torrent = {
   rateDownload: number;
   rateUpload: number;
   status: number;
+  /** Non-zero when Transmission reports a tracker, local or other error. */
+  error: number;
+  errorString: string;
 };
 
 export interface ConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
+  destructive?: boolean;
   title: string;
   description: string;
 }

@@ -45,9 +45,15 @@ export default function Home() {
   );
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogConfig, setDialogConfig] = useState({
+  const [dialogConfig, setDialogConfig] = useState<{
+    title: string;
+    description: string;
+    destructive: boolean;
+    onConfirm: () => void | Promise<void>;
+  }>({
     title: "",
     description: "",
+    destructive: false,
     onConfirm: () => {}
   });
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -80,10 +86,35 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchTorrents();
-    const interval = setInterval(fetchTorrents, 5000);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    return () => clearInterval(interval);
+    // Chain polls so one never starts before the last one returns.
+    let running = false;
+    const poll = async () => {
+      if (running) return;
+      running = true;
+      try {
+        await fetchTorrents();
+      } finally {
+        running = false;
+      }
+      if (!cancelled && !document.hidden) timer = setTimeout(poll, 5000);
+    };
+
+    const handleVisibility = () => {
+      clearTimeout(timer);
+      if (!document.hidden && !cancelled) poll();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    poll();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, []);
 
   const handleStartTorrent = async (id: number) => {
@@ -117,6 +148,7 @@ export default function Home() {
     setDialogConfig({
       title,
       description,
+      destructive: deleteLocalData,
       onConfirm: async () => {
         try {
           await removeTorrent(id, deleteLocalData);
@@ -175,7 +207,7 @@ export default function Home() {
 
   const handleStartSelected = async () => {
     try {
-      await Promise.all(selectedIds.map((id) => startTorrent(id)));
+      await startTorrent(selectedIds);
     } catch (e) {
       toast.error(errorMessage(e, "Failed to start torrents."));
     }
@@ -184,7 +216,7 @@ export default function Home() {
 
   const handleStopSelected = async () => {
     try {
-      await Promise.all(selectedIds.map((id) => stopTorrent(id)));
+      await stopTorrent(selectedIds);
     } catch (e) {
       toast.error(errorMessage(e, "Failed to stop torrents."));
     }
@@ -199,11 +231,10 @@ export default function Home() {
       description: deleteLocalData
         ? "This action cannot be undone. The torrents and their data will be permanently deleted."
         : "This will remove the selected torrents from the list, but the data will remain on disk.",
+      destructive: deleteLocalData,
       onConfirm: async () => {
         try {
-          await Promise.all(
-            selectedIds.map((id) => removeTorrent(id, deleteLocalData))
-          );
+          await removeTorrent(selectedIds, deleteLocalData);
         } catch (e) {
           toast.error(errorMessage(e, "Failed to remove torrents."));
         }
@@ -324,6 +355,7 @@ export default function Home() {
         onConfirm={dialogConfig.onConfirm}
         title={dialogConfig.title}
         description={dialogConfig.description}
+        destructive={dialogConfig.destructive}
       />
       <TorrentDetailsDialog
         torrent={selectedTorrent}
