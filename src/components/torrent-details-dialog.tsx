@@ -100,7 +100,7 @@ export function TorrentDetailsDialog({
   open,
   onOpenChange
 }: TorrentDetailsDialogProps) {
-  const [details, setDetails] = useState<any>(null);
+  const [rawDetails, setDetails] = useState<any>(null);
 
   const torrentId = torrent?.id;
 
@@ -128,7 +128,8 @@ export function TorrentDetailsDialog({
   }
 
   // Prefer fresh polled values; fall back to the prop snapshot until the first fetch returns.
-  const live = details?.id === torrent.id ? details : torrent;
+  const details = rawDetails?.id === torrent.id ? rawDetails : null;
+  const live = details ?? torrent;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
