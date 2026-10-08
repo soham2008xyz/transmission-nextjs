@@ -37,10 +37,7 @@ export default function Home() {
     "table_columnVisibility",
     {}
   );
-  const [rowSelection, setRowSelection] = useLocalStorage(
-    "table_rowSelection",
-    {}
-  );
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogConfig, setDialogConfig] = useState({
     title: "",
@@ -57,6 +54,13 @@ export default function Home() {
   const fetchTorrents = async () => {
     const torrents = await getTorrents();
     setTorrents(torrents);
+    // Drop selections for torrents that no longer exist
+    const ids = new Set(torrents.map((t) => String(t.id)));
+    setRowSelection((prev) => {
+      const keys = Object.keys(prev);
+      if (keys.every((k) => ids.has(k))) return prev;
+      return Object.fromEntries(keys.filter((k) => ids.has(k)).map((k) => [k, prev[k]]));
+    });
   };
 
   useEffect(() => {
@@ -165,6 +169,7 @@ export default function Home() {
   const table = useReactTable({
     data: torrents,
     columns,
+    getRowId: (row) => String(row.id),
     meta: {
       startTorrent: handleStartTorrent,
       stopTorrent: handleStopTorrent,
