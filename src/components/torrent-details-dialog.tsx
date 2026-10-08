@@ -5,7 +5,12 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TorrentDetailsDialogProps } from "@/lib/types";
+import {
+  TorrentDetails,
+  TorrentDetailsDialogProps,
+  TorrentFileStat,
+  TorrentPeer
+} from "@/lib/types";
 import { formatBytes, getStatusText } from "@/lib/utils";
 import { getTorrentDetails, setFileWantedState } from "@/lib/transmission";
 import { useEffect, useRef, useState } from "react";
@@ -100,18 +105,19 @@ export function TorrentDetailsDialog({
   open,
   onOpenChange
 }: TorrentDetailsDialogProps) {
-  const [rawDetails, setDetails] = useState<any>(null);
+  const [rawDetails, setDetails] = useState<TorrentDetails | null>(null);
 
   const torrentId = torrent?.id;
 
   useEffect(() => {
     let cancelled = false;
     // Drop cached details on every open or torrent change so the fresher prop shows first.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset must run before the new fetch starts
     setDetails(null);
     let interval: NodeJS.Timeout | null = null;
-    if (open && torrent) {
+    if (open && torrentId !== undefined) {
       const fetchDetails = async () => {
-        const torrentDetails = await getTorrentDetails(torrent.id);
+        const torrentDetails = await getTorrentDetails(torrentId);
         if (!cancelled) setDetails(torrentDetails);
       };
       fetchDetails();
@@ -303,7 +309,7 @@ export function TorrentDetailsDialog({
                     </tr>
                   </thead>
                   <tbody>
-                    {details.peers.map((peer: any, index: number) => (
+                    {details.peers.map((peer: TorrentPeer, index: number) => (
                       <tr key={index}>
                         <td className='p-2'>{peer.address}</td>
                         <td className='p-2'>{peer.clientName}</td>
@@ -365,8 +371,8 @@ export function TorrentDetailsDialog({
                     </tr>
                   </thead>
                   <tbody>
-                    {details.fileStats.map((fileStat: any, index: number) => {
-                      const file = details.files[index];
+                    {details.fileStats.map((fileStat: TorrentFileStat, index: number) => {
+                      const file = details.files?.[index];
                       const wanted = fileStat.wanted;
                       return (
                         <tr key={index}>
@@ -402,7 +408,7 @@ export function TorrentDetailsDialog({
                               : "-"}
                           </td>
                           <td className='p-2'>
-                            {file?.length > 0 &&
+                            {file && file.length > 0 &&
                             fileStat.bytesCompleted !== undefined
                               ? (
                                   (fileStat.bytesCompleted / file.length) *

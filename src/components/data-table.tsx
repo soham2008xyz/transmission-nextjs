@@ -15,9 +15,19 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { flexRender } from "@tanstack/react-table";
+import {
+  flexRender,
+  type ColumnDef,
+  type Table as ReactTable
+} from "@tanstack/react-table";
+import type { Torrent } from "@/lib/types";
 
-export function DataTable({ table, columns }) {
+interface DataTableProps {
+  table: ReactTable<Torrent>;
+  columns: ColumnDef<Torrent>[];
+}
+
+export function DataTable({ table, columns }: DataTableProps) {
   return (
     <div>
       <div className='rounded-md border'>
@@ -103,7 +113,7 @@ export function DataTable({ table, columns }) {
           {(() => {
             const pageCount = table.getPageCount();
             const current = table.getState().pagination.pageIndex;
-            const pages = [];
+            const pages: number[] = [];
             // Always show first page
             if (pageCount > 0) {
               pages.push(0);

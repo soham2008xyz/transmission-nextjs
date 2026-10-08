@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- axios errors and RPC payloads are untyped here */
 import axios from "axios";
 import { toast } from "sonner";
 

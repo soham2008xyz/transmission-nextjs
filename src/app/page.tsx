@@ -16,7 +16,9 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel
+  getSortedRowModel,
+  type ColumnFiltersState,
+  type SortingState
 } from "@tanstack/react-table";
 import { Navbar } from "@/components/navbar";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
@@ -29,8 +31,8 @@ import { Toaster } from "sonner";
 export default function Home() {
   const [torrents, setTorrents] = useState<Torrent[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [sorting, setSorting] = useLocalStorage("table_sorting", []);
-  const [columnFilters, setColumnFilters] = useLocalStorage(
+  const [sorting, setSorting] = useLocalStorage<SortingState>("table_sorting", []);
+  const [columnFilters, setColumnFilters] = useLocalStorage<ColumnFiltersState>(
     "table_columnFilters",
     []
   );
@@ -53,7 +55,7 @@ export default function Home() {
   const [addError, setAddError] = useState("");
 
   const fetchTorrents = async () => {
-    const torrents = await getTorrents();
+    const torrents: Torrent[] = await getTorrents();
     setTorrents(torrents);
     setLoaded(true);
     // Drop selections for torrents that no longer exist
@@ -182,7 +184,9 @@ export default function Home() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      setSorting(typeof updater === "function" ? updater(sorting) : updater);
+    },
     onColumnFiltersChange: (updater) => {
       setColumnFilters(
         typeof updater === "function" ? updater(columnFilters) : updater

@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
 
     const { data } = await client.post('', body);
     return NextResponse.json(data);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- axios error shape is not typed here
   } catch (error: any) {
     // Log details server-side only; they can include internal hostnames.
     console.error('Transmission RPC request failed:', error?.message);
