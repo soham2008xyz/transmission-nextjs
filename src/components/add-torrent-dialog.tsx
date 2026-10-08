@@ -30,6 +30,7 @@ export function AddTorrentDialog({
   const [torrentFile, setTorrentFile] = useState<File | null>(null);
   const [destination, setDestination] = useState("");
   const [localError, setLocalError] = useState("");
+  const [fileError, setFileError] = useState("");
   const [diskSpace, setDiskSpace] = useState<{
     free: number;
     total: number;
@@ -79,7 +80,7 @@ export function AddTorrentDialog({
       return;
     }
     if (!magnetLink && torrentFile && torrentFile.size > MAX_TORRENT_FILE_BYTES) {
-      setLocalError(tooLargeMessage(torrentFile));
+      setFileError(tooLargeMessage(torrentFile));
       return;
     }
     if (submitting) return;
@@ -89,6 +90,7 @@ export function AddTorrentDialog({
       if (!added) return;
       setMagnetLink("");
       setTorrentFile(null);
+      setFileError("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       setDestination("");
     } finally {
@@ -119,7 +121,7 @@ export function AddTorrentDialog({
             onChange={(e) => {
               const file = e.target.files?.[0] || null;
               setTorrentFile(file);
-              setLocalError(file && file.size > MAX_TORRENT_FILE_BYTES ? tooLargeMessage(file) : "");
+              setFileError(file && file.size > MAX_TORRENT_FILE_BYTES ? tooLargeMessage(file) : "");
             }}
           />
           <Input
@@ -144,9 +146,9 @@ export function AddTorrentDialog({
               {formatBytes(diskSpace.total)}
             </div>
           )}
-          {(localError || error) && (
+          {(localError || fileError || error) && (
             <div className='text-destructive text-sm'>
-              {localError || error}
+              {localError || fileError || error}
             </div>
           )}
         </div>
