@@ -146,7 +146,8 @@ export async function waitFor<T>(
     } catch (e) {
       last = e;
     }
-    await new Promise((r) => setTimeout(r, intervalMs));
+    // Polling: each attempt must wait for the previous one.
+    await new Promise((r) => setTimeout(r, intervalMs)); // NOSONAR
   }
   const reason = last instanceof Error ? `: ${last.message}` : "";
   throw new Error(`Timed out waiting for ${message}${reason}`);
