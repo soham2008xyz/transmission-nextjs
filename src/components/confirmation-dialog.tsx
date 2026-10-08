@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialogProps } from "@/lib/types";
 
@@ -30,13 +30,22 @@ export function ConfirmationDialog({
     if (!open) setError(null);
   }
 
+  // Bumped on every attempt and every close, so a rejection that settles after
+  // the dialog closed can't bring back a stale error.
+  const attempt = useRef(0);
+  useEffect(() => {
+    if (!open) attempt.current++;
+  }, [open]);
+
   const handleConfirm = async () => {
     if (pending) return;
     setPending(true);
     setError(null);
+    const current = ++attempt.current;
     try {
       await onConfirm();
     } catch (err) {
+      if (attempt.current !== current) return;
       setError(err instanceof Error && err.message ? err.message : "Something went wrong.");
     } finally {
       setPending(false);

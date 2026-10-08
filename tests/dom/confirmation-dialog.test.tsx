@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 
@@ -111,6 +111,27 @@ describe("ConfirmationDialog", () => {
 
     rerender(<ConfirmationDialog open={false} {...props} />);
     rerender(<ConfirmationDialog open {...props} />);
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("ignores a rejection that settles after the parent closed the dialog", async () => {
+    let reject!: (e: Error) => void;
+    const onConfirm = vi.fn(() => new Promise<void>((_, r) => (reject = r)));
+    const props = {
+      onOpenChange: vi.fn(),
+      onConfirm,
+      title: "Remove ubuntu.iso?",
+      description: "The data will remain on disk.",
+    };
+    const user = userEvent.setup();
+    const { rerender } = render(<ConfirmationDialog open {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+    rerender(<ConfirmationDialog open={false} {...props} />);
+    await act(async () => reject(new Error("Daemon unreachable")));
+    rerender(<ConfirmationDialog open {...props} />);
+
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
