@@ -21,6 +21,14 @@ export function ConfirmationDialog({
   const [pending, setPending] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  // The parent can close the dialog through `open` without calling
+  // onOpenChange, so drop a stale error whenever it closes.
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (!open) setError(null);
+  }
 
   const handleConfirm = async () => {
     if (pending) return;

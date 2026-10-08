@@ -94,4 +94,24 @@ describe("ConfirmationDialog", () => {
       process.off("unhandledRejection", unhandled);
     }
   });
+
+  it("clears the error when the parent closes the dialog through `open`", async () => {
+    const onConfirm = vi.fn().mockRejectedValue(new Error("Daemon unreachable"));
+    const props = {
+      onOpenChange: vi.fn(),
+      onConfirm,
+      title: "Remove ubuntu.iso?",
+      description: "The data will remain on disk.",
+    };
+    const user = userEvent.setup();
+    const { rerender } = render(<ConfirmationDialog open {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Daemon unreachable");
+
+    rerender(<ConfirmationDialog open={false} {...props} />);
+    rerender(<ConfirmationDialog open {...props} />);
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
 });
