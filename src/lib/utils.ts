@@ -40,7 +40,7 @@ export const getRowStyle = (row: Row<Torrent>) => {
   const { status, percentDone } = row.original;
   const percent = percentDone * 100;
 
-  let color = "transparent";
+  let color: string;
 
   switch (status) {
     case 4: // Downloading
@@ -107,7 +107,7 @@ export function validateDestination(path: string): string {
   const isWindowsDrive = /^[A-Za-z]:[\\/].*/.test(path);
   const isUnc = /^\\\\[^\\]+\\.+/.test(path);
   if (!isPosix && !isWindowsDrive && !isUnc) {
-    return "Path must be absolute (e.g. /downloads or C:\\Downloads)";
+    return String.raw`Path must be absolute (e.g. /downloads or C:\Downloads)`;
   }
   return "";
 }

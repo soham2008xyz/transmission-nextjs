@@ -23,6 +23,7 @@ export type Torrent = {
 
 export interface TorrentPeer {
   address: string;
+  port: number;
   clientName: string;
   progress: number;
   rateToClient: number;

@@ -8,7 +8,7 @@ function safeEqual(a: string, b: string) {
   let diff = a.length ^ b.length;
   const len = Math.max(a.length, b.length);
   for (let i = 0; i < len; i++) {
-    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+    diff |= (a.codePointAt(i) ?? 0) ^ (b.codePointAt(i) ?? 0);
   }
   return diff === 0;
 }
@@ -38,7 +38,7 @@ export function proxy(req: NextRequest) {
 
   let decoded = '';
   try {
-    const bytes = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
+    const bytes = Uint8Array.from(atob(encoded), (c) => c.codePointAt(0) ?? 0);
     decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
   } catch {
     return unauthorized();

@@ -49,7 +49,7 @@ export function Navbar({
   onStopSelected,
   onRemoveSelected,
   selectedCount
-}: NavbarProps) {
+}: Readonly<NavbarProps>) {
   const statusFilterValue = table.getColumn("status")?.getFilterValue();
   const statusValue =
     statusFilterValue !== undefined

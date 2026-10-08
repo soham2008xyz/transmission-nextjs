@@ -3,8 +3,28 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, MoreHorizontal, Play, Pause, Trash2, Trash, ArrowUp, ArrowDown, Info, AlertCircle } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table";
+import { Column, ColumnDef } from "@tanstack/react-table";
 import { Torrent } from "@/lib/types";
+
+function SortIcon({ sorted }: Readonly<{ sorted: false | "asc" | "desc" }>) {
+  if (sorted === "desc") return <ArrowDown className="ml-2 h-4 w-4" />;
+  if (sorted === "asc") return <ArrowUp className="ml-2 h-4 w-4" />;
+  return <ArrowUpDown className="ml-2 h-4 w-4" />;
+}
+
+function SortableHeader({ column, title }: Readonly<{ column: Column<Torrent>; title: string }>) {
+  const sorted = column.getIsSorted();
+  return (
+    <Button
+      variant="ghost"
+      className={sorted ? "font-extrabold" : "font-semibold"}
+      onClick={() => column.toggleSorting(sorted === "asc")}
+    >
+      {title}
+      <SortIcon sorted={sorted} />
+    </Button>
+  );
+}
 
 export const columns: ColumnDef<Torrent>[] = [
   {
@@ -29,24 +49,7 @@ export const columns: ColumnDef<Torrent>[] = [
   },
   {
     accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className={column.getIsSorted() ? "font-extrabold" : "font-semibold"}
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          {column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
-          ) : column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: ({ column }) => <SortableHeader column={column} title="Name" />,
     cell: ({ row }) => {
       return (
         <div className="truncate w-full">
@@ -58,24 +61,7 @@ export const columns: ColumnDef<Torrent>[] = [
   },
   {
     accessorKey: "status",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className={column.getIsSorted() ? "font-extrabold" : "font-semibold"}
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Status
-          {column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
-          ) : column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: ({ column }) => <SortableHeader column={column} title="Status" />,
     cell: ({ row }) => {
       const { error, errorString } = row.original;
       const status = getStatusText(row.getValue("status"));
@@ -92,47 +78,13 @@ export const columns: ColumnDef<Torrent>[] = [
   },
   {
     accessorKey: "totalSize",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className={column.getIsSorted() ? "font-extrabold" : "font-semibold"}
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Size
-          {column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
-          ) : column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: ({ column }) => <SortableHeader column={column} title="Size" />,
     cell: ({ row }) => formatBytes(row.getValue("totalSize")),
     size: 100,
   },
   {
     accessorKey: "percentDone",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className={column.getIsSorted() ? "font-extrabold" : "font-semibold"}
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Progress
-          {column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
-          ) : column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: ({ column }) => <SortableHeader column={column} title="Progress" />,
     cell: ({ row }) => {
       const percentDone = Number.parseFloat(row.getValue("percentDone")) * 100;
       return `${percentDone.toFixed(2)}%`;
@@ -141,47 +93,13 @@ export const columns: ColumnDef<Torrent>[] = [
   },
   {
     accessorKey: "rateDownload",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className={column.getIsSorted() ? "font-extrabold" : "font-semibold"}
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Down Speed
-          {column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
-          ) : column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: ({ column }) => <SortableHeader column={column} title="Down Speed" />,
     cell: ({ row }) => `${formatBytes(row.getValue("rateDownload"))}/s`,
     size: 120,
   },
   {
     accessorKey: "rateUpload",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className={column.getIsSorted() ? "font-extrabold" : "font-semibold"}
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Up Speed
-          {column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
-          ) : column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: ({ column }) => <SortableHeader column={column} title="Up Speed" />,
     cell: ({ row }) => `${formatBytes(row.getValue("rateUpload"))}/s`,
     size: 120,
   },
