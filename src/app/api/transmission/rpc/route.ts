@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { MAX_RPC_BODY_BYTES, MAX_TORRENT_FILE_BYTES } from '@/lib/limits';
 
 const baseUrl = process.env.TRANSMISSION_RPC_URL;
 const transmissionRpcUrl = baseUrl + '/transmission/rpc';
@@ -71,9 +72,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result: 'content type must be application/json' }, { status: 415 });
   }
 
+  const tooLarge = () =>
+    NextResponse.json(
+      { result: `request too large (.torrent files are limited to ${MAX_TORRENT_FILE_BYTES / 1024 / 1024} MB)` },
+      { status: 413 }
+    );
+
+  const declaredLength = Number(req.headers.get('content-length'));
+  if (declaredLength > MAX_RPC_BODY_BYTES) return tooLarge();
+
   let body;
   try {
-    body = await req.json();
+    const text = await req.text();
+    if (text.length > MAX_RPC_BODY_BYTES) return tooLarge();
+    body = JSON.parse(text);
   } catch {
     return NextResponse.json({ result: 'invalid JSON body' }, { status: 400 });
   }
