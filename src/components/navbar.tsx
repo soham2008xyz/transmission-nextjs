@@ -70,7 +70,7 @@ export function Navbar({
             <TooltipContent
               side='bottom'
               align='center'
-              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              className='bg-popover text-popover-foreground px-2 py-1 rounded-sm shadow-md text-xs'>
               Add Torrent
             </TooltipContent>
           </Tooltip>
@@ -88,7 +88,7 @@ export function Navbar({
             <TooltipContent
               side='bottom'
               align='center'
-              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              className='bg-popover text-popover-foreground px-2 py-1 rounded-sm shadow-md text-xs'>
               Start Selected
             </TooltipContent>
           </Tooltip>
@@ -106,7 +106,7 @@ export function Navbar({
             <TooltipContent
               side='bottom'
               align='center'
-              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              className='bg-popover text-popover-foreground px-2 py-1 rounded-sm shadow-md text-xs'>
               Stop Selected
             </TooltipContent>
           </Tooltip>
@@ -124,7 +124,7 @@ export function Navbar({
             <TooltipContent
               side='bottom'
               align='center'
-              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              className='bg-popover text-popover-foreground px-2 py-1 rounded-sm shadow-md text-xs'>
               Remove Selected
             </TooltipContent>
           </Tooltip>
@@ -142,7 +142,7 @@ export function Navbar({
             <TooltipContent
               side='bottom'
               align='center'
-              className='bg-popover text-popover-foreground px-2 py-1 rounded shadow-md text-xs'>
+              className='bg-popover text-popover-foreground px-2 py-1 rounded-sm shadow-md text-xs'>
               Delete Selected
             </TooltipContent>
           </Tooltip>
