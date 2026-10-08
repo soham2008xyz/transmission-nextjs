@@ -191,10 +191,19 @@ export const addTorrentByMagnet = async (
 
 export const addTorrentByFile = async (file: File, destination?: string) => {
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-    if (destination) formData.append("download-dir", destination);
-    await client.post("/upload", formData);
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    await client.post("", {
+      method: "torrent-add",
+      arguments: {
+        metainfo: btoa(binary),
+        ...(destination ? { "download-dir": destination } : {})
+      }
+    });
   } catch (error: any) {
     if (
       error?.message?.includes("Network Error") ||
