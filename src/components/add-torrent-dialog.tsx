@@ -13,8 +13,12 @@ import { Button } from "@/components/ui/button";
 import { getFreeSpace } from "@/lib/transmission";
 import { formatBytes, validateDestination } from "@/lib/utils";
 import { AddTorrentDialogProps } from "@/lib/types";
+import { MAX_TORRENT_FILE_BYTES } from "@/lib/limits";
 
 const FREE_SPACE_DEBOUNCE_MS = 400;
+
+const tooLargeMessage = (file: File) =>
+  `${file.name} is ${formatBytes(file.size)}. .torrent files can be at most ${formatBytes(MAX_TORRENT_FILE_BYTES)}.`;
 
 export function AddTorrentDialog({
   open,
@@ -26,6 +30,7 @@ export function AddTorrentDialog({
   const [torrentFile, setTorrentFile] = useState<File | null>(null);
   const [destination, setDestination] = useState("");
   const [localError, setLocalError] = useState("");
+  const [fileError, setFileError] = useState("");
   const [diskSpace, setDiskSpace] = useState<{
     free: number;
     total?: number;
@@ -74,6 +79,10 @@ export function AddTorrentDialog({
       setLocalError("Please provide a magnet link or select a file.");
       return;
     }
+    if (!magnetLink && torrentFile && torrentFile.size > MAX_TORRENT_FILE_BYTES) {
+      setFileError(tooLargeMessage(torrentFile));
+      return;
+    }
     if (submitting) return;
     setSubmitting(true);
     try {
@@ -81,6 +90,7 @@ export function AddTorrentDialog({
       if (!added) return;
       setMagnetLink("");
       setTorrentFile(null);
+      setFileError("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       setDestination("");
     } finally {
@@ -108,7 +118,11 @@ export function AddTorrentDialog({
             ref={fileInputRef}
             type='file'
             accept='.torrent'
-            onChange={(e) => setTorrentFile(e.target.files?.[0] || null)}
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setTorrentFile(file);
+              setFileError(file && file.size > MAX_TORRENT_FILE_BYTES ? tooLargeMessage(file) : "");
+            }}
           />
           <Input
             placeholder='Destination path (optional)'
@@ -133,9 +147,9 @@ export function AddTorrentDialog({
                 ` / Total: ${formatBytes(diskSpace.total)}`}
             </div>
           )}
-          {(localError || error) && (
+          {(localError || fileError || error) && (
             <div className='text-destructive text-sm'>
-              {localError || error}
+              {localError || fileError || error}
             </div>
           )}
         </div>

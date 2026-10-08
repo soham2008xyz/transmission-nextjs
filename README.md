@@ -58,3 +58,13 @@ app beyond a trusted network, and serve it over HTTPS.
 The RPC route only forwards the methods the UI uses (`torrent-get`,
 `torrent-start-now`, `torrent-stop`, `torrent-remove`, `torrent-add`,
 `torrent-set` for file selection, and `free-space`). It rejects all others with 403.
+
+## Upload size limit
+
+`.torrent` files can be up to 20 MB. The Add dialog checks the size before it
+uploads, and the RPC route answers `413` with a JSON message for larger
+requests. To change the cap, edit `MAX_TORRENT_FILE_BYTES` in
+`src/lib/limits.ts` and keep `proxyClientMaxBodySize` in `next.config.mjs`
+above the matching request size (the file travels as base64, about 4/3 of its
+size). Next.js cuts proxied request bodies off at 10 MB by default, which broke
+files over about 7.5 MB.

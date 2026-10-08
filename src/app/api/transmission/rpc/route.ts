@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { formatBytes } from '@/lib/utils';
+import { MAX_RPC_BODY_BYTES, MAX_TORRENT_FILE_BYTES } from '@/lib/limits';
 
 const baseUrl = process.env.TRANSMISSION_RPC_URL;
 const transmissionRpcUrl = baseUrl + '/transmission/rpc';
@@ -71,9 +73,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result: 'content type must be application/json' }, { status: 415 });
   }
 
+  const tooLarge = () =>
+    NextResponse.json(
+      { result: `request too large (.torrent files are limited to ${formatBytes(MAX_TORRENT_FILE_BYTES)})` },
+      { status: 413 }
+    );
+
+  const declaredLength = Number(req.headers.get('content-length'));
+  if (declaredLength > MAX_RPC_BODY_BYTES) return tooLarge();
+
   let body;
   try {
-    body = await req.json();
+    const text = await req.text();
+    if (Buffer.byteLength(text, 'utf8') > MAX_RPC_BODY_BYTES) return tooLarge();
+    body = JSON.parse(text);
   } catch {
     return NextResponse.json({ result: 'invalid JSON body' }, { status: 400 });
   }
@@ -87,6 +100,12 @@ export async function POST(req: NextRequest) {
     if (allowedArgs && body.arguments && typeof body.arguments === 'object') {
       const extra = Object.keys(body.arguments).filter((k) => !allowedArgs.includes(k));
       if (extra.length > 0) return forbidden('argument not allowed');
+    }
+    // Enforce the file cap on the decoded data too; the body limit has slack.
+    const metainfo = body.arguments?.metainfo;
+    if (method === 'torrent-add' && typeof metainfo === 'string') {
+      const padding = Number(metainfo.endsWith('=')) + Number(metainfo.endsWith('=='));
+      if ((metainfo.length * 3) / 4 - padding > MAX_TORRENT_FILE_BYTES) return tooLarge();
     }
 
     const { data } = await client.post('', body);

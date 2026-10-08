@@ -7,6 +7,9 @@ const client = axios.create({
   timeout: 15000,
 });
 
+// A maximum-size .torrent is about 27 MB of base64; allow for slow links.
+const FILE_UPLOAD_TIMEOUT_MS = 120000;
+
 export class RpcError extends Error {
   /** True when Transmission (or this app's server) could not be reached. */
   unreachable: boolean;
@@ -31,13 +34,15 @@ interface RpcResponse<T> {
 export const rpc = async <T = any>(
   method: string,
   args: Record<string, unknown> = {},
+  timeout?: number,
 ): Promise<T> => {
   let data: RpcResponse<T>;
   try {
-    ({ data } = await client.post<RpcResponse<T>>("", {
-      method,
-      arguments: args,
-    }));
+    ({ data } = await client.post<RpcResponse<T>>(
+      "",
+      { method, arguments: args },
+      timeout ? { timeout } : undefined,
+    ));
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
@@ -175,7 +180,7 @@ export const addTorrentByFile = async (file: File, destination?: string) => {
   const data = await rpc("torrent-add", {
     metainfo: btoa(binary),
     ...(destination ? { "download-dir": destination } : {}),
-  });
+  }, FILE_UPLOAD_TIMEOUT_MS);
   assertNotDuplicate(data);
 };
 
