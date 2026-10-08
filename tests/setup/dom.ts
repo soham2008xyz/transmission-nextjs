@@ -7,14 +7,20 @@ afterEach(() => {
   localStorage.clear();
   // Radix modals lock the body while open; an unmount mid-animation can leave it locked.
   document.body.removeAttribute("style");
-  document.body.removeAttribute("data-scroll-locked");
+  delete document.body.dataset.scrollLocked;
 });
 
 // jsdom lacks the layout and pointer APIs that Radix UI calls.
 class ResizeObserverStub {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe() {
+    // jsdom does no layout, so there is never anything to report.
+  }
+  unobserve() {
+    // Nothing is tracked.
+  }
+  disconnect() {
+    // Nothing is tracked.
+  }
 }
 globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { http, HttpResponse } from "msw/http";
+import { http, HttpResponse } from "msw";
 import { server } from "../setup/msw";
 import {
   RpcError,

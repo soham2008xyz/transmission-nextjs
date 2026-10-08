@@ -98,31 +98,33 @@ export function createDaemonClient(daemon: DaemonInfo) {
   const auth = "Basic " + Buffer.from(`${daemon.username}:${daemon.password}`).toString("base64");
   let sessionId = "";
 
+  const post = (body: string) =>
+    fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: auth,
+        "Content-Type": "application/json",
+        "X-Transmission-Session-Id": sessionId,
+      },
+      body,
+    });
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC payloads are untyped
   async function call<T = any>(method: string, args: Record<string, unknown> = {}): Promise<T> {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: auth,
-          "Content-Type": "application/json",
-          "X-Transmission-Session-Id": sessionId,
-        },
-        body: JSON.stringify({ method, arguments: args }),
-      });
-      if (res.status === 409) {
-        sessionId = res.headers.get("x-transmission-session-id") ?? "";
-        continue;
-      }
-      const body = await res.json();
-      if (body.result !== "success") throw new Error(`${method} failed: ${body.result}`);
-      return body.arguments;
+    const body = JSON.stringify({ method, arguments: args });
+    let res = await post(body);
+    if (res.status === 409) {
+      // Retry once with the session id the daemon just handed out.
+      sessionId = res.headers.get("x-transmission-session-id") ?? "";
+      res = await post(body);
     }
-    throw new Error(`${method} failed: session handshake did not settle`);
+    const json = await res.json();
+    if (json.result !== "success") throw new Error(`${method} failed: ${json.result}`);
+    return json.arguments;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- torrent fields vary by request
-  async function getTorrent(hash: string, fields: string[]): Promise<any | undefined> {
+  async function getTorrent(hash: string, fields: string[]): Promise<any> {
     const { torrents } = await call("torrent-get", { ids: [hash], fields });
     return torrents[0];
   }
@@ -146,5 +148,6 @@ export async function waitFor<T>(
     }
     await new Promise((r) => setTimeout(r, intervalMs));
   }
-  throw new Error(`Timed out waiting for ${message}${last ? `: ${String(last)}` : ""}`);
+  const reason = last instanceof Error ? `: ${last.message}` : "";
+  throw new Error(`Timed out waiting for ${message}${reason}`);
 }

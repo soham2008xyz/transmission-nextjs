@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { http, HttpResponse } from "msw/http";
+import { http, HttpResponse } from "msw";
 import { server } from "../setup/msw";
 import { MAX_RPC_BODY_BYTES, MAX_TORRENT_FILE_BYTES } from "@/lib/limits";
 

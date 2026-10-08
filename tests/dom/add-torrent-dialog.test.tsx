@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { http, HttpResponse } from "msw/http";
+import { http, HttpResponse } from "msw";
 import { server } from "../setup/msw";
 import { AddTorrentDialog } from "@/components/add-torrent-dialog";
 import { MAX_TORRENT_FILE_BYTES } from "@/lib/limits";

@@ -38,6 +38,10 @@ export interface BuiltTorrent {
 
 const PIECE_LENGTH = 16 * 1024;
 
+// BitTorrent v1 defines piece hashes and the info-hash as SHA-1. The file
+// format requires it; it protects nothing here.
+const sha1 = (data: Buffer) => createHash("sha1").update(data).digest(); // NOSONAR
+
 /**
  * Builds a trackerless .torrent for the given payload. One file makes a
  * single-file torrent; more make a multi-file torrent rooted at `name`.
@@ -46,7 +50,7 @@ export function makeTorrent(name: string, files: PayloadFile[]): BuiltTorrent {
   const all = Buffer.concat(files.map((f) => f.content));
   const pieces: Buffer[] = [];
   for (let i = 0; i < all.length; i += PIECE_LENGTH) {
-    pieces.push(createHash("sha1").update(all.subarray(i, i + PIECE_LENGTH)).digest());
+    pieces.push(sha1(all.subarray(i, i + PIECE_LENGTH)));
   }
   const info: Record<string, Bencodable> = {
     name,
@@ -61,7 +65,7 @@ export function makeTorrent(name: string, files: PayloadFile[]): BuiltTorrent {
   return {
     name,
     torrent: bencode({ "created by": "transmission-nextjs tests", info }),
-    infoHash: createHash("sha1").update(bencode(info)).digest("hex"),
+    infoHash: sha1(bencode(info)).toString("hex"),
     files,
   };
 }
@@ -81,7 +85,7 @@ export function makeOversizedTorrent(name: string, bytes: number): BuiltTorrent 
   return {
     name,
     torrent: bencode({ info }),
-    infoHash: createHash("sha1").update(bencode(info)).digest("hex"),
+    infoHash: sha1(bencode(info)).toString("hex"),
     files: [],
   };
 }
