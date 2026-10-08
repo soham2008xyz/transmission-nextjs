@@ -142,7 +142,7 @@ export default function Home() {
     magnetLink: string,
     torrentFile: File | null,
     destination: string
-  ) => {
+  ): Promise<boolean> => {
     setAddError("");
     try {
       if (magnetLink) {
@@ -151,13 +151,21 @@ export default function Home() {
         await addTorrentByFile(torrentFile, destination);
       } else {
         setAddError("Please provide a magnet link or select a file.");
-        return;
+        return false;
       }
-      setAddDialogOpen(false);
-      await fetchTorrents();
     } catch (e) {
       setAddError(e instanceof Error ? e.message : "Failed to add torrent.");
+      return false;
     }
+    setAddDialogOpen(false);
+    // The torrent is added; a failed refresh must not read as a failed add.
+    await fetchTorrents().catch(() => {});
+    return true;
+  };
+
+  const handleAddDialogOpenChange = (open: boolean) => {
+    if (!open) setAddError("");
+    setAddDialogOpen(open);
   };
 
   // Bulk action handlers
@@ -306,7 +314,7 @@ export default function Home() {
       {/* Add Torrent Dialog */}
       <AddTorrentDialog
         open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
+        onOpenChange={handleAddDialogOpenChange}
         onAdd={handleAddTorrent}
         error={addError}
       />

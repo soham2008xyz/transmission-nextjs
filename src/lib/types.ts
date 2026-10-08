@@ -38,6 +38,6 @@ export interface AddTorrentDialogProps {
     magnetLink: string,
     torrentFile: File | null,
     destination: string
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   error?: string;
 }
