@@ -14,6 +14,12 @@ import {
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  // `theme` is undefined during SSR; render the label only after mount.
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   return (
     <DropdownMenu>
@@ -24,7 +30,13 @@ export function ThemeToggle() {
             <Moon className="absolute h-full w-full rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </div>
           <span className="ml-2">
-            {theme === "light" ? "Light" : theme === "dark" ? "Dark" : "System"}
+            {mounted
+              ? theme === "light"
+                ? "Light"
+                : theme === "dark"
+                  ? "Dark"
+                  : "System"
+              : ""}
           </span>
         </Button>
       </DropdownMenuTrigger>

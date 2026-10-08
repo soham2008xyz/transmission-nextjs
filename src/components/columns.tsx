@@ -2,7 +2,7 @@ import { formatBytes, getStatusText } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, MoreHorizontal, Play, Pause, Trash2, Trash, ArrowUp, ArrowDown, Info } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, Play, Pause, Trash2, Trash, ArrowUp, ArrowDown, Info, AlertCircle } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Torrent } from "@/lib/types";
 
@@ -76,7 +76,17 @@ export const columns: ColumnDef<Torrent>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => getStatusText(row.getValue("status")),
+    cell: ({ row }) => {
+      const { error, errorString } = row.original;
+      const status = getStatusText(row.getValue("status"));
+      if (!error) return status;
+      return (
+        <div className="flex items-center gap-1 text-destructive" title={errorString}>
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span className="truncate">{status}: {errorString || "Error"}</span>
+        </div>
+      );
+    },
     filterFn: 'equals',
     size: 150,
   },

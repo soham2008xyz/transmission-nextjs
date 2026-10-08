@@ -3,6 +3,8 @@ import axios from "axios";
 
 const client = axios.create({
   baseURL: "/api/transmission/rpc",
+  // A hung request must fail so the chained poll can retry.
+  timeout: 15000,
 });
 
 export class RpcError extends Error {
@@ -72,6 +74,8 @@ export const getTorrents = async () => {
       "rateDownload",
       "rateUpload",
       "status",
+      "error",
+      "errorString",
     ],
   });
   return data.torrents;
@@ -113,21 +117,25 @@ export const getTorrentDetails = async (id: number) => {
   return data.torrents[0];
 };
 
-export const startTorrent = async (id: number) => {
+// The three actions below take one id or an array, and send one RPC call.
+export const startTorrent = async (ids: number | number[]) => {
   await rpc("torrent-start-now", {
-    ids: [id],
+    ids: [ids].flat(),
   });
 };
 
-export const stopTorrent = async (id: number) => {
+export const stopTorrent = async (ids: number | number[]) => {
   await rpc("torrent-stop", {
-    ids: [id],
+    ids: [ids].flat(),
   });
 };
 
-export const removeTorrent = async (id: number, deleteLocalData = false) => {
+export const removeTorrent = async (
+  ids: number | number[],
+  deleteLocalData = false,
+) => {
   await rpc("torrent-remove", {
-    ids: [id],
+    ids: [ids].flat(),
     "delete-local-data": deleteLocalData,
   });
 };
