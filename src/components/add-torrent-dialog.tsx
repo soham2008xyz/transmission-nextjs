@@ -36,6 +36,7 @@ export function AddTorrentDialog({
 
   useEffect(() => {
     if (!destination) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clears stale disk info when the field empties
       setDiskSpace(null);
       setDiskLoading(false);
       return;

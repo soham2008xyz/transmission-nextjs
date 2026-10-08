@@ -189,7 +189,7 @@ export const columns: ColumnDef<Torrent>[] = [
     id: "actions",
     cell: ({ row, table }) => {
       const torrent = row.original;
-      const { startTorrent, stopTorrent, removeTorrent, viewTorrentDetails } = table.options.meta;
+      const { startTorrent, stopTorrent, removeTorrent, viewTorrentDetails } = table.options.meta!;
 
       return (
         <DropdownMenu>

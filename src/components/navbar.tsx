@@ -1,3 +1,5 @@
+import type { Table } from "@tanstack/react-table";
+import type { Torrent } from "@/lib/types";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,6 +33,15 @@ import {
   TooltipContent
 } from "@/components/ui/tooltip";
 
+interface NavbarProps {
+  table: Table<Torrent>;
+  onAddTorrentClick: () => void;
+  onStartSelected: () => void;
+  onStopSelected: () => void;
+  onRemoveSelected: (deleteData: boolean) => void;
+  selectedCount: number;
+}
+
 export function Navbar({
   table,
   onAddTorrentClick,
@@ -38,11 +49,11 @@ export function Navbar({
   onStopSelected,
   onRemoveSelected,
   selectedCount
-}) {
+}: NavbarProps) {
   const statusFilterValue = table.getColumn("status")?.getFilterValue();
   const statusValue =
     statusFilterValue !== undefined
-      ? statusReverseMap[statusFilterValue]
+      ? statusReverseMap[statusFilterValue as number]
       : "All";
 
   return (
@@ -179,7 +190,7 @@ export function Navbar({
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
-                const key = column.accessorKey || column.id;
+                const key = column.id;
                 const headerText = columnHeaderNames[key] || key;
                 return (
                   <DropdownMenuCheckboxItem
