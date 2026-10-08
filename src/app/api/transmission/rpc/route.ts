@@ -34,9 +34,46 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
+// Only the methods the UI uses. Everything else gets a 403.
+const ALLOWED_METHODS = new Set([
+  'torrent-get',
+  'torrent-start-now',
+  'torrent-stop',
+  'torrent-remove',
+  'torrent-add',
+  'torrent-set',
+  'free-space',
+]);
+
+// Per-method limits on arguments, for methods that can do more than the UI needs.
+const ALLOWED_ARGUMENTS: Record<string, string[]> = {
+  'torrent-set': ['ids', 'files-wanted', 'files-unwanted'],
+  'torrent-add': ['filename', 'metainfo', 'download-dir', 'paused'],
+};
+
+function forbidden(message: string) {
+  return NextResponse.json({ result: message }, { status: 403 });
+}
+
 export async function POST(req: NextRequest) {
+  // Forms can't send application/json cross-site without a CORS preflight.
+  if (!req.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+    return NextResponse.json({ result: 'content type must be application/json' }, { status: 415 });
+  }
+
   try {
     const body = await req.json();
+
+    const method = body?.method;
+    if (typeof method !== 'string' || !ALLOWED_METHODS.has(method)) {
+      return forbidden('method not allowed');
+    }
+    const allowedArgs = ALLOWED_ARGUMENTS[method];
+    if (allowedArgs && body.arguments && typeof body.arguments === 'object') {
+      const extra = Object.keys(body.arguments).filter((k) => !allowedArgs.includes(k));
+      if (extra.length > 0) return forbidden('argument not allowed');
+    }
+
     const { data } = await client.post('', body);
     return NextResponse.json(data);
   } catch (error: any) { // Changed type to any
