@@ -33,6 +33,36 @@ You need Node.js 20.9 or newer and a running Transmission daemon with RPC enable
 | `npm run start` | Serve the production build |
 | `npm run lint` | Lint with ESLint |
 | `npm run typecheck` | Type-check with `tsc` |
+| `npm test` | Run the unit and component tests |
+| `npm run test:watch` | Run the unit and component tests in watch mode |
+| `npm run test:coverage` | Run the unit and component tests with a coverage report |
+| `npm run test:integration` | Run the RPC route against a real Transmission daemon (needs Docker) |
+| `npm run test:e2e` | Run the browser tests against the production build and a real daemon (needs Docker and `npm run build`) |
+
+## Testing
+
+The tests come in four layers:
+
+| Layer | Where | Runs against |
+| --- | --- | --- |
+| Unit | `tests/unit` | The RPC route, `proxy.ts` and helpers in Node, with HTTP mocked by [MSW](https://mswjs.io) |
+| Component | `tests/dom` | The RPC client, hooks, dialogs, table and page in jsdom |
+| Integration | `tests/integration` | The RPC route against a Transmission daemon in Docker |
+| End-to-end | `e2e` | `next start` with basic auth on, in Chromium, against a Transmission daemon in Docker |
+
+`npm test` needs nothing but Node.js 22 or newer (the app itself runs on 20.9). The integration and end-to-end tests start
+their own throwaway daemon (`lscr.io/linuxserver/transmission`, pinned in
+`tests/support/daemon.ts`) with [Testcontainers](https://testcontainers.com), so
+Docker must be running. They create `.torrent` files on the fly, seed their data
+into a temporary directory, and never touch the daemon in your `.env`.
+
+Before the first end-to-end run, install the browser:
+
+```bash
+npx playwright install chromium
+```
+
+CI runs every layer on each pull request.
 
 ## Configuration
 
