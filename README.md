@@ -63,7 +63,9 @@ Before the first end-to-end run, install the browser:
 npx playwright install chromium
 ```
 
-CI runs every layer on each pull request.
+CI runs every layer on each pull request. The unit job also sends its
+analysis and coverage to SonarCloud (`sonar-project.properties`), which needs a
+`SONAR_TOKEN` repository secret and Automatic Analysis turned off in SonarCloud.
 
 ## Configuration
 
