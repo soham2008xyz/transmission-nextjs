@@ -28,6 +28,7 @@ import { Toaster } from "sonner";
 
 export default function Home() {
   const [torrents, setTorrents] = useState<Torrent[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [sorting, setSorting] = useLocalStorage("table_sorting", []);
   const [columnFilters, setColumnFilters] = useLocalStorage(
     "table_columnFilters",
@@ -54,6 +55,7 @@ export default function Home() {
   const fetchTorrents = async () => {
     const torrents = await getTorrents();
     setTorrents(torrents);
+    setLoaded(true);
     // Drop selections for torrents that no longer exist
     const ids = new Set(torrents.map((t) => String(t.id)));
     setRowSelection((prev) => {
@@ -181,7 +183,12 @@ export default function Home() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: (updater) => {
+      setColumnFilters(
+        typeof updater === "function" ? updater(columnFilters) : updater
+      );
+      setPageIndex(0);
+    },
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onPaginationChange: (updater) => {
@@ -206,6 +213,15 @@ export default function Home() {
     },
     autoResetPageIndex: false
   });
+
+  // Keep the saved page inside range when rows are removed or filtered out.
+  // Wait for the first fetch so an empty table does not reset the saved page.
+  const pageCount = table.getPageCount();
+  useEffect(() => {
+    if (!loaded) return;
+    const lastPage = Math.max(0, pageCount - 1);
+    if (pageIndex > lastPage) setPageIndex(lastPage);
+  }, [loaded, pageCount, pageIndex, setPageIndex]);
 
   return (
     <>
