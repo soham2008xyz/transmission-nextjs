@@ -48,7 +48,7 @@ export function ConfirmationDialog({
           <Button
             variant={destructive ? "destructive" : "default"}
             disabled={pending}
-            onClick={handleConfirm}
+            onClick={() => void handleConfirm()}
           >
             {pending ? "Working..." : "Confirm"}
           </Button>

@@ -99,16 +99,16 @@ export default function Home() {
       } finally {
         running = false;
       }
-      if (!cancelled && !document.hidden) timer = setTimeout(poll, 5000);
+      if (!cancelled && !document.hidden) timer = setTimeout(() => void poll(), 5000);
     };
 
     const handleVisibility = () => {
       clearTimeout(timer);
-      if (!document.hidden && !cancelled) poll();
+      if (!document.hidden && !cancelled) void poll();
     };
 
     document.addEventListener("visibilitychange", handleVisibility);
-    poll();
+    void poll();
 
     return () => {
       cancelled = true;
