@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 const TooltipProvider = RadixTooltip.Provider;
 const TooltipRoot = RadixTooltip.Root;
 const TooltipTrigger = RadixTooltip.Trigger;
-const TooltipPortal = RadixTooltip.Portal;
 const TooltipContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<typeof RadixTooltip.Content>

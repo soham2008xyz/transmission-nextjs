@@ -17,7 +17,9 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel
+  getSortedRowModel,
+  type ColumnFiltersState,
+  type SortingState
 } from "@tanstack/react-table";
 import { Navbar } from "@/components/navbar";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
@@ -34,8 +36,8 @@ export default function Home() {
   const [torrents, setTorrents] = useState<Torrent[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [disconnected, setDisconnected] = useState(false);
-  const [sorting, setSorting] = useLocalStorage("table_sorting", []);
-  const [columnFilters, setColumnFilters] = useLocalStorage(
+  const [sorting, setSorting] = useLocalStorage<SortingState>("table_sorting", []);
+  const [columnFilters, setColumnFilters] = useLocalStorage<ColumnFiltersState>(
     "table_columnFilters",
     []
   );
@@ -228,7 +230,9 @@ export default function Home() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      setSorting(typeof updater === "function" ? updater(sorting) : updater);
+    },
     onColumnFiltersChange: (updater) => {
       setColumnFilters(
         typeof updater === "function" ? updater(columnFilters) : updater
