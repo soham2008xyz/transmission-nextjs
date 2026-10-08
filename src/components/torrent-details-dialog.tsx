@@ -12,7 +12,7 @@ import {
   TorrentFileStat,
   TorrentPeer
 } from "@/lib/types";
-import { formatBytes, getStatusText } from "@/lib/utils";
+import { errorMessage, formatBytes, getStatusText } from "@/lib/utils";
 import { getTorrentDetails, setFileWantedState } from "@/lib/transmission";
 import { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -362,11 +362,7 @@ function FilesTab({
                         !!checked
                       );
                     } catch (e) {
-                      toast.error(
-                        e instanceof Error && e.message
-                          ? e.message
-                          : "Failed to update file."
-                      );
+                      toast.error(errorMessage(e, "Failed to update file."));
                     }
                     // Refetch details to sync UI, also after a failure so the checkbox shows the real state
                     try {

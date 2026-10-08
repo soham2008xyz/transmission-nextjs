@@ -28,9 +28,7 @@ import { useLocalStorage } from "@/lib/useLocalStorage";
 import { Torrent } from "@/lib/types";
 import { AddTorrentDialog } from "@/components/add-torrent-dialog";
 import { Toaster, toast } from "sonner";
-
-const errorMessage = (e: unknown, fallback: string) =>
-  e instanceof Error && e.message ? e.message : fallback;
+import { errorMessage } from "@/lib/utils";
 
 export default function Home() {
   const [torrents, setTorrents] = useState<Torrent[]>([]);
