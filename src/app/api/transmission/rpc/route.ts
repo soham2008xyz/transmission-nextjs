@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     // Enforce the file cap on the decoded data too; the body limit has slack.
     const metainfo = body.arguments?.metainfo;
     if (method === 'torrent-add' && typeof metainfo === 'string') {
-      const padding = metainfo.endsWith('==') ? 2 : metainfo.endsWith('=') ? 1 : 0;
+      const padding = Number(metainfo.endsWith('=')) + Number(metainfo.endsWith('=='));
       if ((metainfo.length * 3) / 4 - padding > MAX_TORRENT_FILE_BYTES) return tooLarge();
     }
 
