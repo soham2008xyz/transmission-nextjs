@@ -1,5 +1,13 @@
 # Transmission Next.js
 
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?logo=tailwind-css)
+![Vitest](https://img.shields.io/badge/Vitest-5-6E9F18?logo=vitest)
+![Playwright](https://img.shields.io/badge/Playwright-1.64-45ba4b?logo=playwright)
+![Node.js](https://img.shields.io/badge/Node.js-22.22.2+-339933?logo=node.js)
+
 A web UI for a Transmission daemon.
 
 ## Setup
@@ -24,6 +32,15 @@ You need Node.js 22.22.2+, 24.15+ or 26+ (`.nvmrc` pins 22.22.2 for nvm, fnm and
    npm run dev
    ```
 
+## Tech Stack
+
+- **Framework:** [Next.js 16 (App Router)](https://nextjs.org/) with [React 19](https://react.dev/)
+- **Language:** [TypeScript 5](https://www.typescriptlang.org/)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/) + shadcn/ui components
+- **Testing:** [Vitest](https://vitest.dev/) (unit + component), [Playwright](https://playwright.dev/) (e2e), [Testcontainers](https://testcontainers.com/) (integration against real daemon)
+- **RPC:** Axios to Transmission JSON-RPC
+- **Daemon:** `lscr.io/linuxserver/transmission` (pinned in tests)
+
 ## Commands
 
 | Command | What it does |
@@ -47,7 +64,7 @@ The tests come in four layers:
 | --- | --- | --- |
 | Unit | `tests/unit` | The RPC route, `proxy.ts` and helpers in Node, with HTTP mocked by [MSW](https://mswjs.io) |
 | Component | `tests/dom` | The RPC client, hooks, dialogs, table and page in jsdom |
-| Integration | `tests/integration` | The RPC route against a Transmission daemon in Docker |
+| Integration | `tests/integration` | The RPC route against a Transmission daemon in Docker ([Testcontainers](https://testcontainers.com/)) |
 | End-to-end | `e2e` | `next start` with basic auth on, in Chromium, against a Transmission daemon in Docker |
 
 `npm test` needs nothing but a supported Node.js version (Vitest and jsdom
