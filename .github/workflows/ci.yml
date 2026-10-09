@@ -39,6 +39,14 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run test:coverage
+      # Keeps the scanner's downloaded analyzers between runs.
+      - name: Cache SonarCloud packages
+        if: env.HAS_SONAR_TOKEN == 'true'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
       # Sends the analysis and coverage/lcov.info (see sonar-project.properties).
       # Needs Automatic Analysis turned off in SonarCloud.
       - name: SonarCloud analysis
