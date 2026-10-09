@@ -8,6 +8,14 @@
 ![Playwright](https://img.shields.io/badge/Playwright-1.64-45ba4b?logo=playwright)
 ![Node.js](https://img.shields.io/badge/Node.js-22.22.2+-339933?logo=node.js)
 
+[![nextjs](https://img.shields.io/badge/nextjs-black?logo=nextdotjs)](https://github.com/soham-banerjee/transmission-nextjs)
+[![transmission-daemon](https://img.shields.io/badge/transmission--daemon-blue)](https://github.com/soham-banerjee/transmission-nextjs)
+[![transmission-web](https://img.shields.io/badge/transmission--web-lightgrey)](https://github.com/soham-banerjee/transmission-nextjs)
+[![react](https://img.shields.io/badge/react-%2361DAFB?logo=react)](https://github.com/soham-banerjee/transmission-nextjs)
+[![typescript](https://img.shields.io/badge/typescript-%233178C6?logo=typescript)](https://github.com/soham-banerjee/transmission-nextjs)
+[![tailwindcss](https://img.shields.io/badge/tailwindcss-%2338B2AC?logo=tailwindcss)](https://github.com/soham-banerjee/transmission-nextjs)
+[![transmission-ui](https://img.shields.io/badge/transmission--ui-orange)](https://github.com/soham-banerjee/transmission-nextjs)
+
 A web UI for a Transmission daemon.
 
 ## Setup
