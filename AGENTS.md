@@ -33,8 +33,24 @@ Run a single test while iterating instead of the whole suite:
 - Layers are Vitest projects (`vitest.config.mts`): `unit` (Node), `dom` (jsdom), `integration` (real daemon via Testcontainers, image pinned in `tests/support/daemon.ts`). `npm test` runs only the first two; CI runs all four layers including Playwright.
 - e2e runs one worker against one throwaway daemon on port 3100 with basic auth on, so it covers `proxy.ts` too.
 
+## Cursor Cloud specific instructions
+
+- **Node on PATH**: The VM image puts `/exec-daemon` before `/usr/local/bin`, so `node -v` can show an older Node than `.nvmrc`. `.cursor/install.sh` installs the pinned version via nvm and symlinks it into `/usr/local/bin`; `.cursor/start.sh` prepends the nvm bin directory to `PATH`. For ad-hoc commands in an agent shell, run `export PATH="$HOME/.nvm/versions/node/v$(cat .nvmrc)/bin:/usr/local/bin:$PATH"` (or re-run install) before `npm`.
+- **Docker**: Integration and e2e tests need a running Docker daemon. `.cursor/start.sh` starts `dockerd` (fuse-overlayfs storage driver) and a local Transmission container on `127.0.0.1:9091` for `npm run dev`.
+- **Verification**: CI order is lint → typecheck → build → `npm test`. Optional layers: `npm run test:integration` and `npm run test:e2e` (after `npm run build` and `npx playwright install chromium`).
+
 ## Repo conventions
 
 - Default branch is `master`; PR titles use conventional commits (`feat:`, `fix:`, `chore(scope):`).
 - `.github/PULL_REQUEST_TEMPLATE.md` is the checklist: typecheck, lint, all test layers, screenshots for UI changes, and README + `.env.example` updated for any new env var.
 - `.mcp.json` registers a SonarQube Cloud MCP server that needs `SONARQUBE_TOKEN` in the environment (see `.env.example`).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
