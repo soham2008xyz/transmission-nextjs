@@ -44,4 +44,4 @@ if [[ -S /var/run/docker.sock ]]; then
   sudo chmod 666 /var/run/docker.sock
 fi
 
-npx playwright install chromium
+npx --ignore-scripts playwright install chromium
